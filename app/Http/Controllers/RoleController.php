@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\SellingPriceGroup;
+use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
@@ -17,14 +18,30 @@ class RoleController extends Controller
      */
     protected $moduleUtil;
 
+    protected $businessUtil;
+
     /**
      * Create a new controller instance.
      *
+     * Role/User management is performed centrally by the super admin.
+     * Store-level users and business admins are NOT allowed to
+     * access this controller. The super admin (configured in
+     * config/constants.php -> administrator_usernames) is the only
+     * user that can pass the `can('superadmin')` check.
+     *
      * @return void
      */
-    public function __construct(ModuleUtil $moduleUtil)
+    public function __construct(ModuleUtil $moduleUtil, BusinessUtil $businessUtil)
     {
         $this->moduleUtil = $moduleUtil;
+        $this->businessUtil = $businessUtil;
+
+        $this->middleware(function ($request, $next) {
+            if (! auth()->user()->can('superadmin')) {
+                abort(403, 'Unauthorized action. Only the super admin can manage roles.');
+            }
+            return $next($request);
+        });
     }
 
     /**
@@ -292,6 +309,14 @@ class RoleController extends Controller
                     if (! empty($permissions)) {
                         $role->syncPermissions($permissions);
                     }
+
+                    // Propagate this role's permission set to every
+                    // tenant business that carries a role with the
+                    // same base name. The sync is a no-op when the
+                    // current business is not the template business
+                    // (first business), so business admins editing
+                    // their own role copy are unaffected.
+                    $this->businessUtil->syncRolePermissionsToAllBusinesses($role->refresh());
 
                     $output = ['success' => 1,
                         'msg' => __('user.role_updated'),

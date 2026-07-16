@@ -20,12 +20,25 @@ class ManageUserController extends Controller
     /**
      * Constructor
      *
+     * User management is performed centrally by the super admin.
+     * Store-level users and business admins are NOT allowed to
+     * access this controller. The super admin (configured in
+     * config/constants.php -> administrator_usernames) is the only
+     * user that can pass the `can('superadmin')` check.
+     *
      * @param  Util  $commonUtil
      * @return void
      */
     public function __construct(ModuleUtil $moduleUtil)
     {
         $this->moduleUtil = $moduleUtil;
+
+        $this->middleware(function ($request, $next) {
+            if (! auth()->user()->can('superadmin')) {
+                abort(403, 'Unauthorized action. Only the super admin can manage users.');
+            }
+            return $next($request);
+        });
     }
 
     /**

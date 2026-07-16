@@ -260,6 +260,65 @@ class BusinessUtil extends Util
     }
 
     /**
+     * Propagate a role's current permission set to every other
+     * business that has a role with the same base name.
+     *
+     * The "template" role lives in the first business (typically the
+     * super admin's own business). When that role is edited via
+     * RoleController::update(), we want the changes to flow out to
+     * every business that already has a copy of the same role
+     * (e.g. "Pharmacist#1" -> "Pharmacist#2", "Pharmacist#3", ...).
+     *
+     * Idempotent: if no other business carries the role, this is a
+     * no-op. New businesses that get the role assigned later will
+     * still pick up the latest permissions via
+     * cloneRoleFromTemplateByName().
+     *
+     * @param  \Spatie\Permission\Models\Role  $role  the freshly-updated template role
+     * @return int  number of tenant roles that were synced
+     */
+    public function syncRolePermissionsToAllBusinesses($role)
+    {
+        if (! $role) {
+            return 0;
+        }
+
+        // Only sync from the template business (first business).
+        $template_business = Business::orderBy('id')->first();
+        if (! $template_business || (int) $role->business_id !== (int) $template_business->id) {
+            return 0;
+        }
+
+        // Strip the "#<id>" suffix to derive the base name.
+        $base_name = preg_replace('/#\d+$/', '', $role->name);
+        if ($base_name === '' || $base_name === $role->name) {
+            return 0;
+        }
+
+        $permission_names = $role->permissions->pluck('name')->all();
+
+        $synced = 0;
+        $tenant_roles = Role::where('name', 'LIKE', preg_replace('/[#%_]/', '\\$0', $base_name) . '#%')
+            ->where('id', '!=', $role->id)
+            ->get();
+
+        foreach ($tenant_roles as $tenant_role) {
+            try {
+                if (! empty($permission_names)) {
+                    $tenant_role->syncPermissions($permission_names);
+                } else {
+                    $tenant_role->syncPermissions([]);
+                }
+                $synced++;
+            } catch (\Throwable $e) {
+                \Log::warning('Role sync failed for ' . $tenant_role->name . ': ' . $e->getMessage());
+            }
+        }
+
+        return $synced;
+    }
+
+    /**
      * Gives a list of all currencies
      *
      * @return array

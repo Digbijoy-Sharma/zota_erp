@@ -48,7 +48,10 @@ class AdminSidebarMenu
           </svg>', 'active' => request()->segment(1) == 'home'])->order(5);
 
             //User management dropdown
-            if (auth()->user()->can('user.view') || auth()->user()->can('user.create') || auth()->user()->can('roles.view')) {
+            // Locked down: user/role management is performed centrally
+            // by the super admin. Store-level users (Pharmacist, Cashier,
+            // etc.) and business admins must not see these menus.
+            if (auth()->user()->can('superadmin') && (auth()->user()->can('user.view') || auth()->user()->can('user.create') || auth()->user()->can('roles.view'))) {
                 $menu->dropdown(
                     __('user.user_management'),
                     function ($sub) {

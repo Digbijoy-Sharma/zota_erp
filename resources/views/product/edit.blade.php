@@ -111,6 +111,14 @@
 
             <div class="col-sm-4">
               <div class="form-group">
+                {!! Form::label('composition_id', __('composition.composition') . ':') !!}
+                {!! Form::select('composition_id', $compositions, $product->composition_id, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
+                <p class="help-block">@lang('composition.product_form_help')</p>
+              </div>
+            </div>
+
+            <div class="col-sm-4">
+              <div class="form-group">
                 {!! Form::label('product_locations', __('business.business_locations') . ':') !!} @show_tooltip(__('lang_v1.product_location_help'))
                   {!! Form::select('product_locations[]', $business_locations, $product->product_locations->pluck('id'), ['class' => 'form-control select2', 'multiple', 'id' => 'product_locations']); !!}
               </div>

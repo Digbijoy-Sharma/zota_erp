@@ -12,6 +12,7 @@ use App\Http\Controllers\BusinessLocationController;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CombinedPurchaseReturnController;
+use App\Http\Controllers\CompositionController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CustomerGroupController;
 use App\Http\Controllers\DashboardConfiguratorController;
@@ -158,6 +159,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::resource('taxonomies', TaxonomyController::class);
 
     Route::resource('variation-templates', VariationTemplateController::class);
+
+    // Compositions (sub-module of Products): auto-named from a "+"-joined list of salts.
+    Route::resource('compositions', CompositionController::class);
 
     Route::get('/products/download-excel', [ProductController::class, 'downloadExcel']);
 

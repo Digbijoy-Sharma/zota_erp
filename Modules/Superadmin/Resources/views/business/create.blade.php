@@ -16,6 +16,29 @@
                     @include('business.partials.register_form')
                     <div class="clearfix"></div>
                     <div class="col-md-12"><hr></div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            {!! Form::label('supplier_ids', __( 'superadmin::lang.assign_common_suppliers' ) . ':') !!}
+                            @if (empty($common_suppliers) || (is_countable($common_suppliers) ? count($common_suppliers) === 0 : (method_exists($common_suppliers, 'isEmpty') && $common_suppliers->isEmpty())))
+                                <div class="alert alert-warning" style="padding: 6px 10px;">
+                                    <i class="fa fa-info-circle"></i>
+                                    No suppliers available yet. Add suppliers in
+                                    <a href="{{ action([\App\Http\Controllers\ContactController::class, 'index']) }}" target="_blank">
+                                        Contacts &rarr; Suppliers
+                                    </a>
+                                    (in the super admin's business) first.
+                                </div>
+                            @else
+                                {!! Form::select('supplier_ids[]', $common_suppliers, null, [
+                                    'class' => 'form-control select2',
+                                    'multiple' => 'multiple',
+                                    'id' => 'supplier_ids_create',
+                                ]); !!}
+                            @endif
+                            <p class="help-block">@lang('superadmin::lang.assign_common_suppliers_help')</p>
+                        </div>
+                    </div>
+                    <div class="col-md-12"><hr></div>
                     <div class="col-md-4">
                         <div class="form-group">
                             {!! Form::label('package_id', __( 'superadmin::lang.subscription_packages' ) . ':') !!}
@@ -53,6 +76,11 @@
     <script type="text/javascript">
         $(document).ready(function(){
             $('.select2_register').select2();
+            $('#supplier_ids_create').select2({
+                width: '100%',
+                placeholder: 'Select suppliers to assign to this business',
+                allowClear: true,
+            });
             $("form#business_register_form").validate({
                 errorPlacement: function(error, element) {
                     if(element.parent('.input-group').length) {

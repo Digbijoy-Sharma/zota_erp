@@ -3,6 +3,7 @@
 namespace Modules\Superadmin\Http\Controllers;
 
 use App\Business;
+use App\Contact;
 use App\Product;
 use App\Transaction;
 use App\User;
@@ -241,6 +242,37 @@ class BusinessController extends BaseController
         $packages = Package::active()->orderby('sort_order')->pluck('name', 'id');
         $gateways = $this->_payment_gateways();
 
+        // Master suppliers = suppliers in the super admin's own business
+        // (Contacts with type='supplier' under the logged-in super admin).
+        $super_admin_business_id = session('user.business_id');
+        $common_suppliers = Contact::where('business_id', $super_admin_business_id)
+            ->whereIn('type', ['supplier', 'both'])
+            ->orderBy('name')
+            ->select(
+                'id',
+                'name',
+                'contact_id',
+                'supplier_business_name',
+                'email',
+                'mobile'
+            )
+            ->get()
+            ->mapWithKeys(function ($c) {
+                // Build a human-friendly label. Prefer the contact `name`,
+                // then the business/trade name, then a numeric id fallback.
+                $label = trim((string) $c->name);
+                if ($label === '' && ! empty($c->supplier_business_name)) {
+                    $label = trim((string) $c->supplier_business_name);
+                }
+                if ($label === '') {
+                    $label = 'Supplier #' . $c->id;
+                }
+                if (! empty($c->contact_id)) {
+                    $label .= ' (' . $c->contact_id . ')';
+                }
+                return [$c->id => $label];
+            });
+
         return view('superadmin::business.create')
             ->with(compact(
                 'currencies',
@@ -249,7 +281,8 @@ class BusinessController extends BaseController
                 'months',
                 'is_admin',
                 'packages',
-                'gateways'
+                'gateways',
+                'common_suppliers'
             ));
     }
 
@@ -326,6 +359,28 @@ class BusinessController extends BaseController
                 ]);
             }
 
+            //Assign the suppliers selected during business creation.
+            //Each selected supplier is a Contact id from the super admin's
+            //own business — we clone it into the new business so it shows
+            //up in the business's supplier list.
+            $supplier_ids = (array) $request->input('supplier_ids', []);
+            $super_admin_business_id = $request->session()->get('user.business_id');
+            $user_id = $request->session()->get('user.id');
+            if (!empty($supplier_ids)) {
+                try {
+                    $master_suppliers = Contact::where('business_id', $super_admin_business_id)
+                        ->whereIn('id', $supplier_ids)
+                        ->get();
+                    foreach ($master_suppliers as $master) {
+                        $master->cloneToBusinessAsSupplier($business->id, $user_id);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Supplier assignment during business creation failed: ' . $e->getMessage(), [
+                        'business_id' => $business->id,
+                    ]);
+                }
+            }
+
             //Module function to be called after after business is created
             if (config('app.env') != 'demo') {
                 $this->moduleUtil->getModuleData('after_business_created', ['business' => $business]);
@@ -379,6 +434,114 @@ class BusinessController extends BaseController
     public function edit()
     {
         return view('superadmin::edit');
+    }
+
+    /**
+     * Display a page where the super admin can assign / unassign
+     * common suppliers (Contacts in the super admin's own business)
+     * to a single existing business.
+     */
+    public function manageSuppliers(Request $request, $business_id)
+    {
+        if (! auth()->user()->can('superadmin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business = Business::findOrFail($business_id);
+
+        // Master suppliers live in the super admin's own business.
+        $super_admin_business_id = $request->session()->get('user.business_id');
+        $all_suppliers = Contact::where('business_id', $super_admin_business_id)
+            ->whereIn('type', ['supplier', 'both'])
+            ->orderBy('name')
+            ->get();
+
+        // Suppliers currently assigned = master supplier ids that have
+        // been cloned into this business.
+        $assigned_ids = Contact::where('business_id', $business->id)
+            ->whereNotNull('common_supplier_id')
+            ->pluck('common_supplier_id')
+            ->toArray();
+
+        // Build a display label so empty-name suppliers still show up in the list.
+        $all_suppliers->each(function ($c) {
+            $label = trim((string) $c->name);
+            if ($label === '' && ! empty($c->supplier_business_name)) {
+                $label = trim((string) $c->supplier_business_name);
+            }
+            if ($label === '') {
+                $label = 'Supplier #' . $c->id;
+            }
+            if (! empty($c->contact_id)) {
+                $label .= ' (' . $c->contact_id . ')';
+            }
+            $c->display_name = $label;
+        });
+
+        return view('superadmin::business.manage_suppliers', compact('business', 'all_suppliers', 'assigned_ids'));
+    }
+
+    /**
+     * Sync the supplier assignment set for a single business.
+     * Accepts the FULL set of master supplier ids (Contact ids from the
+     * super admin's own business) the business should be assigned to.
+     * Suppliers not in the list are unassigned (clones are kept but
+     * unlinked so historical purchases stay valid).
+     */
+    public function syncSuppliers(Request $request, $business_id)
+    {
+        if (! auth()->user()->can('superadmin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $business = Business::findOrFail($business_id);
+            $super_admin_business_id = $request->session()->get('user.business_id');
+            $user_id = $request->session()->get('user.id');
+
+            $new_ids = array_values(array_unique(array_map('intval', (array) $request->input('supplier_ids', []))));
+
+            // Currently assigned = master ids with a clone in this business.
+            $current_ids = Contact::where('business_id', $business->id)
+                ->whereNotNull('common_supplier_id')
+                ->pluck('common_supplier_id')
+                ->toArray();
+
+            $to_add = array_diff($new_ids, $current_ids);
+            $to_remove = array_diff($current_ids, $new_ids);
+
+            // Load all master suppliers we may need in one query.
+            $needed_ids = array_unique(array_merge($to_add, $to_remove));
+            $masters = Contact::where('business_id', $super_admin_business_id)
+                ->whereIn('id', $needed_ids)
+                ->get()
+                ->keyBy('id');
+
+            foreach ($to_add as $sid) {
+                if (isset($masters[$sid])) {
+                    $masters[$sid]->cloneToBusinessAsSupplier($business->id, $user_id);
+                }
+            }
+
+            foreach ($to_remove as $sid) {
+                if (isset($masters[$sid])) {
+                    $masters[$sid]->unlinkFromBusiness($business->id);
+                }
+            }
+
+            $output = [
+                'success' => true,
+                'msg' => __('superadmin::lang.common_suppliers_synced'),
+            ];
+        } catch (\Exception $e) {
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $output = [
+                'success' => false,
+                'msg' => __('messages.something_went_wrong'),
+            ];
+        }
+
+        return response()->json($output);
     }
 
     /**

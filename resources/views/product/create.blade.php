@@ -98,6 +98,14 @@
             </div>
         </div>
 
+        <div class="col-sm-4">
+            <div class="form-group">
+                {!! Form::label('composition_id', __('composition.composition') . ':') !!}
+                {!! Form::select('composition_id', $compositions, !empty($duplicate_product->composition_id) ? $duplicate_product->composition_id : null, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
+                <p class="help-block">@lang('composition.product_form_help')</p>
+            </div>
+        </div>
+
         @php
         $default_location = null;
         if(count($business_locations) == 1){

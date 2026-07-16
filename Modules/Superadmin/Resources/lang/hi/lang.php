@@ -195,4 +195,12 @@ return [
     'allow_registration' => 'पंजीकरण की अनुमति दें',
     'flutterwave_help_text' => 'स्पंदन के लिए समर्थित मुद्राओं की जांच के लिए इस लिंक पर क्लिक करें',
     'master_products' => 'Master Products',
+    'common_suppliers_synced' => 'Supplier assignment updated successfully',
+    'assign_common_suppliers' => 'Assign Common Suppliers',
+    'assign_common_suppliers_help' => 'Select the common suppliers to make available to this business. A supplier contact will be auto-created in the business on assignment.',
+    'manage_suppliers' => 'Manage Suppliers',
+    'currently_assigned' => 'Currently Assigned',
+    'no_suppliers_assigned' => 'No suppliers have been assigned to this business yet.',
+    'assigned_businesses' => 'Assigned Businesses',
+    'select_suppliers_placeholder' => 'Select suppliers to assign to this business',
 ];

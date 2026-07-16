@@ -400,4 +400,106 @@ class Contact extends Authenticatable
     {
         return $this->belongsToMany(\App\User::class, 'user_contact_access');
     }
+
+    /**
+     * The "master" supplier (managed by the super admin) that this
+     * Contact was cloned from. Null for supplier contacts that were
+     * created directly inside the business.
+     */
+    public function masterSupplier()
+    {
+        return $this->belongsTo(\App\Contact::class, 'common_supplier_id');
+    }
+
+    /**
+     * Clone this Contact (expected to be a supplier) into the given
+     * business as a fully-functional supplier Contact. Idempotent: if
+     * the target business already has a clone (matched by
+     * business_id + common_supplier_id), returns the existing clone
+     * without creating a duplicate.
+     *
+     * @param  int  $business_id       Target business
+     * @param  int  $created_by_user_id User id stamped as creator
+     * @return \App\Contact             The (new or existing) clone
+     */
+    public function cloneToBusinessAsSupplier($business_id, $created_by_user_id)
+    {
+        // Reuse an existing clone if the supplier is already linked.
+        $existing = static::where('business_id', $business_id)
+            ->where('common_supplier_id', $this->id)
+            ->first();
+
+        if ($existing) {
+            // Refresh the link in case the row was left orphan but unlinked.
+            if ($existing->common_supplier_id === null) {
+                $existing->common_supplier_id = $this->id;
+                $existing->save();
+            }
+            return $existing;
+        }
+
+        return static::create([
+            'business_id' => $business_id,
+            'type' => 'supplier',
+            'name' => $this->name,
+            'supplier_business_name' => $this->supplier_business_name,
+            'contact_id' => null,
+            'email' => $this->email,
+            'mobile' => $this->mobile,
+            'tax_number' => $this->tax_number,
+            'address_line_1' => $this->address_line_1,
+            'city' => $this->city,
+            'state' => $this->state,
+            'country' => $this->country,
+            'zip_code' => $this->zip_code,
+            'pay_term_number' => $this->pay_term_number,
+            'pay_term_type' => $this->pay_term_type,
+            'created_by' => $created_by_user_id,
+            'common_supplier_id' => $this->id,
+        ]);
+    }
+
+    /**
+     * Remove the link between this master supplier and a target business.
+     * The clone Contact is kept (so historical purchases remain valid) but
+     * is decoupled by clearing the FK.
+     */
+    public function unlinkFromBusiness($business_id)
+    {
+        static::where('business_id', $business_id)
+            ->where('common_supplier_id', $this->id)
+            ->update(['common_supplier_id' => null]);
+    }
+
+    /**
+     * Backfill the name on a previously-cloned supplier when the clone
+     * inherited an empty `name` from the master. Uses the master's
+     * supplier_business_name as the new name. Idempotent.
+     *
+     * @return bool true if a name was set, false otherwise
+     */
+    public function backfillNameFromMaster()
+    {
+        if (! empty($this->name)) {
+            return false;
+        }
+        if (empty($this->common_supplier_id)) {
+            return false;
+        }
+        $master = static::find($this->common_supplier_id);
+        if (! $master) {
+            return false;
+        }
+        $new_name = trim((string) $master->name);
+        if ($new_name === '' && ! empty($master->supplier_business_name)) {
+            $new_name = trim((string) $master->supplier_business_name);
+        }
+        if ($new_name === '') {
+            return false;
+        }
+        $this->name = $new_name;
+        $this->save();
+
+        return true;
+    }
 }

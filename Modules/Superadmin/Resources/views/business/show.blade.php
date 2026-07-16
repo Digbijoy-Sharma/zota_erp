@@ -124,9 +124,64 @@
                                     <img class="img-responsive" src="{{ url( 'uploads/business_logos/' . $business->logo ) }}" alt="Business Logo">
                                 @endif
                             </div>
-                    </div> 
-                </div> 
+                    </div>
+                </div>
     </div>
+    </div>
+
+    <div class="box">
+        <div class="box-header">
+                <h3 class="box-title">
+                    <strong><i class="fa fa-truck margin-r-5"></i>
+                    @lang( 'superadmin::lang.assign_common_suppliers' )</strong>
+                </h3>
+                <a href="{{ action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'manageSuppliers'], [$business->id]) }}"
+                   class="btn btn-primary btn-sm pull-right">
+                    <i class="fa fa-plus"></i> @lang('superadmin::lang.manage_suppliers')
+                </a>
+        </div>
+        <div class="box-body">
+                <div class="row">
+                    <div class ="col-xs-12">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                <tr>
+                                    <th>@lang('contact.name')</th>
+                                    <th>@lang('contact.email')</th>
+                                    <th>@lang('contact.mobile')</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($business->assignedCommonSuppliers as $supplier)
+                                        @php
+                                            $master = $supplier->masterSupplier ?? $supplier;
+                                            $name = trim((string) ($master->name ?? ''));
+                                            if ($name === '' && ! empty($master->supplier_business_name)) {
+                                                $name = trim((string) $master->supplier_business_name);
+                                            }
+                                            if ($name === '') {
+                                                $name = 'Supplier #' . $supplier->id;
+                                            }
+                                            $email = $master->email ?? '';
+                                            $mobile = $master->mobile ?? '';
+                                        @endphp
+                                    <tr>
+                                        <td>{{ $name }}</td>
+                                        <td>{{ $email }}</td>
+                                        <td>{{ $mobile }}</td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="3" class="text-muted text-center">
+                                            @lang('superadmin::lang.no_suppliers_assigned')
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                    </div>
+                </div>
+        </div>
     </div>
 
     <div class="box">

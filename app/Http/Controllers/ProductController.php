@@ -436,11 +436,14 @@ class ProductController extends Controller
         $common_settings = session()->get('business.common_settings');
         $warranties = Warranty::forDropdown($business_id);
 
+        //Compositions for the optional product->composition dropdown
+        $compositions = \App\Composition::forDropdown($business_id, true);
+
         //product screen view from module
         $pos_module_data = $this->moduleUtil->getModuleData('get_product_screen_top_view');
 
         return view('product.create')
-            ->with(compact('categories', 'brands', 'units', 'taxes', 'barcode_types', 'default_profit_percent', 'tax_attributes', 'barcode_default', 'business_locations', 'duplicate_product', 'sub_categories', 'rack_details', 'selling_price_group_count', 'module_form_parts', 'product_types', 'common_settings', 'warranties', 'pos_module_data'));
+            ->with(compact('categories', 'brands', 'units', 'taxes', 'barcode_types', 'default_profit_percent', 'tax_attributes', 'barcode_default', 'business_locations', 'duplicate_product', 'sub_categories', 'rack_details', 'selling_price_group_count', 'module_form_parts', 'product_types', 'common_settings', 'warranties', 'pos_module_data', 'compositions'));
     }
 
     private function product_types()
@@ -493,6 +496,11 @@ class ProductController extends Controller
 
             if (! empty($request->input('secondary_unit_id'))) {
                 $product_details['secondary_unit_id'] = $request->input('secondary_unit_id');
+            }
+
+            // Composition (optional)
+            if ($request->has('composition_id') && $request->input('composition_id') !== '' && $request->input('composition_id') !== null) {
+                $product_details['composition_id'] = (int) $request->input('composition_id');
             }
 
             if (empty($product_details['sku'])) {
@@ -693,13 +701,16 @@ class ProductController extends Controller
         $common_settings = session()->get('business.common_settings');
         $warranties = Warranty::forDropdown($business_id);
 
+        //Compositions for the optional product->composition dropdown
+        $compositions = \App\Composition::forDropdown($business_id, true);
+
         //product screen view from module
         $pos_module_data = $this->moduleUtil->getModuleData('get_product_screen_top_view');
 
         $alert_quantity = ! is_null($product->alert_quantity) ? $this->productUtil->num_f($product->alert_quantity, false, null, true) : null;
 
         return view('product.edit')
-                ->with(compact('categories', 'brands', 'units', 'sub_units', 'taxes', 'tax_attributes', 'barcode_types', 'product', 'sub_categories', 'default_profit_percent', 'business_locations', 'rack_details', 'selling_price_group_count', 'module_form_parts', 'product_types', 'common_settings', 'warranties', 'pos_module_data', 'alert_quantity'));
+                ->with(compact('categories', 'brands', 'units', 'sub_units', 'taxes', 'tax_attributes', 'barcode_types', 'product', 'sub_categories', 'default_profit_percent', 'business_locations', 'rack_details', 'selling_price_group_count', 'module_form_parts', 'product_types', 'common_settings', 'warranties', 'pos_module_data', 'alert_quantity', 'compositions'));
     }
 
     /**
@@ -784,6 +795,13 @@ class ProductController extends Controller
                 $product->sub_category_id = $request->input('sub_category_id');
             } else {
                 $product->sub_category_id = null;
+            }
+
+            // Composition (optional) — null when blank to allow removing
+            if (! empty($request->input('composition_id'))) {
+                $product->composition_id = (int) $request->input('composition_id');
+            } else {
+                $product->composition_id = null;
             }
 
             $expiry_enabled = $request->session()->get('business.enable_product_expiry');

@@ -208,6 +208,13 @@ class AdminSidebarMenu
                                 ['icon' => '', 'active' => request()->segment(1) == 'units']
                             );
                         }
+                        if (auth()->user()->can('product.view') || auth()->user()->can('product.create')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\CompositionController::class, 'index']),
+                                __('composition.compositions'),
+                                ['icon' => '', 'active' => request()->segment(1) == 'compositions']
+                            );
+                        }
                         if (auth()->user()->can('category.view') || auth()->user()->can('category.create')) {
                             $sub->url(
                                 action([\App\Http\Controllers\TaxonomyController::class, 'index']) . '?type=product',

@@ -41,6 +41,10 @@ Route::middleware('web', 'SetSessionData', 'auth', 'language', 'AdminSidebarMenu
     Route::get('/master-products', [Modules\Superadmin\Http\Controllers\SuperadminProductController::class, 'index'])->name('master-products.index');
     Route::get('/master-products/{id}', [Modules\Superadmin\Http\Controllers\SuperadminProductController::class, 'show'])->name('master-products.show');
 
+    // Per-business supplier assignment management
+    Route::get('/business/{business_id}/manage-suppliers', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'manageSuppliers'])->name('business.manage-suppliers');
+    Route::post('/business/{business_id}/sync-suppliers', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'syncSuppliers'])->name('business.sync-suppliers');
+
 });
 
 Route::middleware('web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu')->group(function () {

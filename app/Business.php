@@ -95,6 +95,17 @@ class Business extends Model
     }
 
     /**
+     * Suppliers that were cloned into this business from the super
+     * admin's master supplier list. A supplier is "assigned" when a
+     * Contact row exists in this business with common_supplier_id set.
+     */
+    public function assignedCommonSuppliers()
+    {
+        return $this->hasMany(\App\Contact::class, 'business_id')
+            ->whereNotNull('common_supplier_id');
+    }
+
+    /**
      * Creates a new business based on the input provided.
      *
      * @return object

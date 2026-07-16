@@ -232,6 +232,14 @@ class Product extends Model
     }
 
     /**
+     * Get the composition (if any) this product belongs to.
+     */
+    public function composition()
+    {
+        return $this->belongsTo(\App\Composition::class, 'composition_id');
+    }
+
+    /**
      * Get the master product this product was synced from (if any).
      * Self-referential: a business copy points to the master product row.
      */

@@ -40,12 +40,47 @@
                 <th style="vertical-align: middle;">1 <span id="unit_name">@lang('product.unit')</span></th>
                 <th style="vertical-align: middle;">=</th>
                 <td style="vertical-align: middle;">
-                  {!! Form::text('base_unit_multiplier', null, ['class' => 'form-control input_number', 'placeholder' => __( 'lang_v1.times_base_unit' )]); !!}</td>
+                  {!! Form::text('base_unit_multiplier', null, ['class' => 'form-control input_number', 'id' => 'base_unit_multiplier', 'placeholder' => __( 'lang_v1.times_base_unit' )]); !!}</td>
                 <td style="vertical-align: middle;">
-                  {!! Form::select('base_unit_id', $units, null, ['placeholder' => __( 'lang_v1.select_base_unit' ), 'class' => 'form-control']); !!}
+                  {!! Form::select('base_unit_id', $units, null, ['placeholder' => __( 'lang_v1.select_base_unit' ), 'class' => 'form-control', 'id' => 'base_unit_id_select']); !!}
                 </td>
               </tr>
             </table>
+
+            {{-- Intermediate unit helper --}}
+            @if($sub_units->count() > 0)
+            <div class="well well-sm" style="margin-top: 5px; background: #f9f9f9;">
+              <div class="checkbox" style="margin-top: 0;">
+                <label>
+                  {!! Form::checkbox('define_via_intermediate', 1, false, ['class' => 'toggle_intermediate', 'id' => 'define_via_intermediate']); !!}
+                  @lang('unit.define_via_intermediate_unit')
+                </label>
+                @show_tooltip(__('unit.intermediate_unit_help'))
+              </div>
+              <div id="intermediate_unit_section" class="hide" style="margin-top: 10px;">
+                <table class="table" style="margin-bottom: 5px;">
+                  <tr>
+                    <th style="vertical-align: middle;">1 <span class="intermediate_unit_label">@lang('product.unit')</span></th>
+                    <th style="vertical-align: middle;">=</th>
+                    <td style="vertical-align: middle;">
+                      {!! Form::text('intermediate_multiplier', null, ['class' => 'form-control input_number', 'id' => 'intermediate_multiplier', 'placeholder' => __('unit.quantity')]); !!}
+                    </td>
+                    <td style="vertical-align: middle;">
+                      <select name="intermediate_unit_id" id="intermediate_unit_id" class="form-control">
+                        <option value="">@lang('unit.select_intermediate_unit')</option>
+                        @foreach($sub_units as $su)
+                          <option value="{{ $su->id }}" data-multiplier="{{ $su->base_unit_multiplier }}" data-base_unit_id="{{ $su->base_unit_id }}">{{ $su->actual_name }} ({{ $su->short_name }})</option>
+                        @endforeach
+                      </select>
+                    </td>
+                  </tr>
+                </table>
+                <p class="help-block text-success" id="calculated_base_multiplier_info" style="display:none;">
+                  <i class="fa fa-info-circle"></i> <span id="calc_info_text"></span>
+                </p>
+              </div>
+            </div>
+            @endif
           </div>
         @endif
       </div>

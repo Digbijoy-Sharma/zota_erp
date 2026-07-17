@@ -1971,9 +1971,56 @@ $(document).ready(function() {
 
     $(document).on('keyup', 'form#unit_add_form input#actual_name', function() {
         $('form#unit_add_form span#unit_name').text($(this).val());
+        $('form#unit_add_form span.intermediate_unit_label').text($(this).val());
     });
     $(document).on('keyup', 'form#unit_edit_form input#actual_name', function() {
         $('form#unit_edit_form span#unit_name').text($(this).val());
+        $('form#unit_edit_form span.intermediate_unit_label').text($(this).val());
+    });
+
+    // Intermediate unit toggle
+    $(document).on('change', '.toggle_intermediate', function() {
+        var form = $(this).closest('form');
+        if ($(this).is(':checked')) {
+            form.find('#intermediate_unit_section').removeClass('hide');
+            // Hide the direct base unit fields when using intermediate
+            form.find('#base_unit_multiplier').closest('table').addClass('hide');
+        } else {
+            form.find('#intermediate_unit_section').addClass('hide');
+            form.find('#base_unit_multiplier').closest('table').removeClass('hide');
+            form.find('#calculated_base_multiplier_info').hide();
+            form.find('#intermediate_multiplier').val('');
+            form.find('#intermediate_unit_id').val('');
+        }
+    });
+
+    // Auto-calculate base multiplier from intermediate unit
+    $(document).on('change keyup', '#intermediate_multiplier, #intermediate_unit_id', function() {
+        var form = $(this).closest('form');
+        var qty = parseFloat(form.find('#intermediate_multiplier').val()) || 0;
+        var selected = form.find('#intermediate_unit_id option:selected');
+        var intermediate_multiplier = parseFloat(selected.data('multiplier')) || 0;
+        var base_unit_id = selected.data('base_unit_id');
+
+        if (qty > 0 && intermediate_multiplier > 0 && base_unit_id) {
+            var total_multiplier = qty * intermediate_multiplier;
+            var unit_name = form.find('#actual_name').val() || LANG.unit;
+            var intermediate_name = selected.text();
+
+            // Find base unit name from the base_unit_id select
+            var base_unit_name = form.find('#base_unit_id_select option[value="' + base_unit_id + '"]').text();
+
+            // Auto-fill the hidden base unit fields
+            form.find('#base_unit_multiplier').val(total_multiplier);
+            form.find('#base_unit_id_select').val(base_unit_id);
+
+            // Show info message
+            var info_text = '1 ' + unit_name + ' = ' + qty + ' ' + intermediate_name + ' = ' + total_multiplier + ' ' + base_unit_name;
+            form.find('#calc_info_text').text(info_text);
+            form.find('#calculated_base_multiplier_info').show();
+        } else {
+            form.find('#calculated_base_multiplier_info').hide();
+        }
     });
 
     $('#user_dob').datepicker({

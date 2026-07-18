@@ -31,19 +31,19 @@
                       action="{{route('install.update')}}">
                     {{ csrf_field() }}
 
-                    <h4> License Details <small class="text-danger">Make sure to provide correct information from Envato/codecanyon</small></h4>
+                    <h4> License Details <small class="text-danger">Make sure to provide correct license information</small></h4>
                     <hr/>
 
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="envato_purchase_code">Envato Purchase Code:*</label>
+                            <label for="envato_purchase_code">License Code:*</label>
                             <input type="text" name="ENVATO_PURCHASE_CODE" required class="form-control" id="envato_purchase_code">
                         </div>
                     </div>
 
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="envato_username">Envato Username:*</label>
+                            <label for="envato_username">Username:*</label>
                             <input type="text" name="ENVATO_USERNAME" required class="form-control" id="envato_username">
                         </div>
                     </div>
@@ -55,7 +55,6 @@
                           <p class="help-block">For Newsletter & support</p>
                         </div>
                     </div>
-                    @include('install.partials.i_service')
                     @include('install.partials.e_license')
 
                     <div class="col-md-12">

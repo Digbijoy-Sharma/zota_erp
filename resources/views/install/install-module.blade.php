@@ -40,13 +40,6 @@
                             <label for="license_code">License Code:*</label>
                             <input type="text" name="license_code" required class="form-control" id="license_code">
 
-                            @if($intruction_type == 'uf')
-                                <p class="help-block"><a href="https://ultimatefosters.com/docs/ultimate-fosters-shop/license-key/#Getting-License-Details-for-products-purchased-from-ultimatefosterscom" target="_blank">Where is my License Key?</a></p>
-                            @endif
-
-                            @if($intruction_type == 'cc')
-                                <p class="help-block"><a href="https://help.market.envato.com/hc/en-us/articles/202822600-Where-Is-My-Purchase-Code-#:~:text=Hover%20the%20mouse%20over%20your,as%20PDF%20or%20text%20file)." target="_blank">Where is my License Key?</a></p>
-                            @endif
                         </div>
                     </div>
 
@@ -55,13 +48,6 @@
                             <label for="login_username">Login Username:*</label>
                             <input type="text" name="login_username" required class="form-control" id="login_username">
 
-                            @if($intruction_type == 'uf')
-                                <p class="help-block"><a href="https://ultimatefosters.com/docs/ultimate-fosters-shop/user-name/#Steps-to-get-your-username-for-all-products-purchased-from-UltimateFosters" target="_blank" class="text-success">Where is my Username?</a></p>
-                            @endif
-
-                            @if($intruction_type == 'cc')
-                                <p class="help-block">Enter the username that you use for codecanyon or envato login</p>
-                            @endif
                         </div>
                     </div>
 

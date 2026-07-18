@@ -9,12 +9,12 @@ return [
     /*
      * The HTML <title> for the generated documentation. If this is empty, Scribe will infer it from config('app.name').
      */
-    'title' => "UltimatePOS API Documentation",
+    'title' => "MySalesERP API Documentation",
 
     /*
      * A short description of your API. Will be included in the docs webpage, Postman collection and OpenAPI spec.
      */
-    'description' => 'UltimatePOS API Documentation',
+    'description' => 'MySalesERP API Documentation',
 
     /*
      * The base URL displayed in the docs. If this is empty, Scribe will use the value of config('app.url').

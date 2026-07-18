@@ -1,28 +1,9 @@
 <?php
-/* LICENSE: This source file belongs to The Web Fosters. The customer
- * is provided a licence to use it.
- * Permission is hereby granted, to any person obtaining the licence of this
- * software and associated documentation files (the "Software"), to use the
- * Software for personal or business purpose ONLY. The Software cannot be
- * copied, published, distribute, sublicense, and/or sell copies of the
- * Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+/*
+ * MySalesERP
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. THE AUTHOR CAN FIX
- * ISSUES ON INTIMATION. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
- * THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @author     The Web Fosters <thewebfosters@gmail.com>
- * @owner      The Web Fosters <thewebfosters@gmail.com>
- * @copyright  2018 The Web Fosters
- * @license    As attached in zip file.
+ * @owner      GITCS
+ * @copyright  GITCS
  */
 
 namespace App\Http\Controllers;

@@ -40,7 +40,7 @@
                   <div class="col-md-6">
                     <div class="form-group">
                         <label for="app_name">Application Name:*</label>
-                        <input type="text" class="form-control" name="APP_NAME" id="app_name" placeholder="Ultimate POS" required>
+                        <input type="text" class="form-control" name="APP_NAME" id="app_name" placeholder="MySalesERP" required>
                     </div>
                   </div>
                   
@@ -51,7 +51,7 @@
                     </div>
                   </div>
 
-                <h4> License Details <small class="text-danger">Make sure to provide correct information from Envato/codecanyon</small></h4>
+                <h4> License Details <small class="text-danger">Make sure to provide correct license information</small></h4>
                 <hr/>
 
                 <div class="col-md-4">
@@ -141,14 +141,14 @@
                   <div class="col-md-6">
                     <div class="form-group">
                         <label for="MAIL_FROM_ADDRESS">Default from address:*</label>
-                        <input type="email" class="form-control" id="MAIL_FROM_ADDRESS" name="MAIL_FROM_ADDRESS" placeholder="hello@ultimatepos.com" required>
+                        <input type="email" class="form-control" id="MAIL_FROM_ADDRESS" name="MAIL_FROM_ADDRESS" placeholder="hello@mysaleserp.com" required>
                     </div>
                   </div>
 
                   <div class="col-md-6">
                     <div class="form-group">
                         <label for="MAIL_FROM_NAME">Default from name:</label>
-                        <input type="text" class="form-control" id="MAIL_FROM_NAME" name="MAIL_FROM_NAME" placeholder="Ultimate POS (Optional)">
+                        <input type="text" class="form-control" id="MAIL_FROM_NAME" name="MAIL_FROM_NAME" placeholder="MySalesERP (Optional)">
                     </div>
                   </div>
 

@@ -25,6 +25,8 @@
 
                     <li @if(request()->segment(1) == 'superadmin' && request()->segment(2) == 'master-products') class="active" @endif><a href="{{ action([\Modules\Superadmin\Http\Controllers\SuperadminProductController::class, 'index']) }}">@lang('superadmin::lang.master_products')</a></li>
 
+                    <li @if(request()->segment(1) == 'superadmin' && request()->segment(2) == 'invoice-assignment') class="active" @endif><a href="{{ action([\Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::class, 'index']) }}">@lang('superadmin::lang.invoice_assignment')</a></li>
+
                     <li @if(request()->segment(1) == 'superadmin' && request()->segment(2) == 'communicator') class="active" @endif><a href="{{action([\Modules\Superadmin\Http\Controllers\CommunicatorController::class, 'index'])}}">@lang('superadmin::lang.communicator')</a></li>
                 </ul>
 

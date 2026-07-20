@@ -150,7 +150,15 @@ class InvoiceLayoutController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $invoice_layout = InvoiceLayout::findOrFail($id);
+        $business_id = request()->session()->get('user.business_id');
+        $invoice_layout = InvoiceLayout::where('business_id', $business_id)->findOrFail($id);
+
+        // Mirrors of a super-admin master layout are read-only on the
+        // store side — the master defines the format for the whole
+        // GST group.
+        if (! empty($invoice_layout->master_invoice_layout_id)) {
+            abort(403, __('superadmin::lang.mirror_layout_locked'));
+        }
 
         //Module info
         $invoice_layout->module_info = json_decode($invoice_layout->module_info, true);
@@ -233,9 +241,26 @@ class InvoiceLayoutController extends Controller
             $input['common_settings'] = ! empty($request->input('common_settings')) ? json_encode($request->input('common_settings')) : null;
             $input['qr_code_fields'] = ! empty($request->input('qr_code_fields')) ? json_encode($request->input('qr_code_fields')) : null;
 
+            $layout = InvoiceLayout::where('business_id', $business_id)->findOrFail($id);
+
+            // Store-side mirrors are read-only (managed centrally).
+            if (! empty($layout->master_invoice_layout_id)) {
+                return redirect('invoice-schemes')->with('status', [
+                    'success' => 0,
+                    'msg' => __('superadmin::lang.mirror_layout_locked'),
+                ]);
+            }
+
             InvoiceLayout::where('id', $id)
                         ->where('business_id', $business_id)
                         ->update($input);
+
+            // If this layout is a master with store mirrors, push the
+            // change to every mirror (single bulk query).
+            if (class_exists(\Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::class)) {
+                \Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::syncMirrorsForLayout($layout->refresh());
+            }
+
             $output = ['success' => 1,
                 'msg' => __('invoice.layout_updated_success'),
             ];

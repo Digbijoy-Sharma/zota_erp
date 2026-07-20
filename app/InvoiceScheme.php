@@ -14,6 +14,24 @@ class InvoiceScheme extends Model
     protected $guarded = ['id'];
 
     /**
+     * Master scheme this row mirrors (store-side copies of a
+     * superadmin-managed scheme). The invoice counter lives on the
+     * master; mirrors only carry the format for local dropdowns.
+     */
+    public function master()
+    {
+        return $this->belongsTo(InvoiceScheme::class, 'master_invoice_scheme_id');
+    }
+
+    /**
+     * Store-side mirrors of this (master) scheme.
+     */
+    public function mirrors()
+    {
+        return $this->hasMany(InvoiceScheme::class, 'master_invoice_scheme_id');
+    }
+
+    /**
      * Returns list of invoice schemes in array format
      */
     public static function forDropdown($business_id)

@@ -109,8 +109,21 @@ class InvoiceSchemeController extends Controller
             $business_id = $request->session()->get('user.business_id');
             $input['business_id'] = $business_id;
 
+            // Stores whose numbering is centrally managed (a mirror of
+            // a super-admin master scheme exists) must not create side
+            // schemes — every invoice has to come from the shared
+            // GST-wise series.
+            $has_mirror = InvoiceScheme::where('business_id', $business_id)
+                ->whereNotNull('master_invoice_scheme_id')
+                ->exists();
+            if ($has_mirror) {
+                return ['success' => false,
+                    'msg' => __('superadmin::lang.scheme_creation_blocked'),
+                ];
+            }
+
             $input['start_number'] = ($input['number_type'] == 'aleatory') ? '' : $input['start_number'];
-            
+
             if (! empty($request->input('is_default'))) {
                 //get_default
                 $default = InvoiceScheme::where('business_id', $business_id)
@@ -187,7 +200,24 @@ class InvoiceSchemeController extends Controller
 
             $input['start_number'] = ($input['number_type'] == 'aleatory') ? '' : $input['start_number'];
 
-            $invoice = InvoiceScheme::where('id', $id)->update($input);
+            $business_id = $request->session()->get('user.business_id');
+            $scheme = InvoiceScheme::where('business_id', $business_id)->findOrFail($id);
+
+            // Mirrors of a super-admin master scheme are read-only on
+            // the store side — the master defines the format.
+            if (! empty($scheme->master_invoice_scheme_id)) {
+                return ['success' => false,
+                    'msg' => __('superadmin::lang.mirror_scheme_locked'),
+                ];
+            }
+
+            $scheme->update($input);
+
+            // If this scheme is a master with store mirrors, push the
+            // format change to every mirror (single bulk query).
+            if (class_exists(\Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::class)) {
+                \Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::syncMirrorsForScheme($scheme->refresh());
+            }
 
             $output = ['success' => true,
                 'msg' => __('invoice.updated_success'),
@@ -217,7 +247,17 @@ class InvoiceSchemeController extends Controller
 
         if (request()->ajax()) {
             try {
-                $invoice = InvoiceScheme::find($id);
+                $business_id = request()->session()->get('user.business_id');
+                $invoice = InvoiceScheme::where('business_id', $business_id)->findOrFail($id);
+
+                // Centrally managed mirrors cannot be deleted by the
+                // store — that would detach it from the shared series.
+                if (! empty($invoice->master_invoice_scheme_id)) {
+                    return ['success' => false,
+                        'msg' => __('superadmin::lang.mirror_scheme_locked'),
+                    ];
+                }
+
                 if ($invoice->is_default != 1) {
                     $invoice->delete();
                     $output = ['success' => true,
@@ -254,13 +294,26 @@ class InvoiceSchemeController extends Controller
 
         if (request()->ajax()) {
             try {
-                //get_default
                 $business_id = request()->session()->get('user.business_id');
+                $invoice = InvoiceScheme::where('business_id', $business_id)->findOrFail($id);
+
+                // When the business is on a centrally managed shared
+                // series, its mirror must stay the default — every
+                // invoice has to be numbered from that series.
+                $mirror = InvoiceScheme::where('business_id', $business_id)
+                    ->whereNotNull('master_invoice_scheme_id')
+                    ->first();
+                if (! empty($mirror) && $mirror->id != $invoice->id) {
+                    return ['success' => false,
+                        'msg' => __('superadmin::lang.mirror_scheme_locked'),
+                    ];
+                }
+
+                //get_default
                 $default = InvoiceScheme::where('business_id', $business_id)
                                 ->where('is_default', 1)
                                  ->update(['is_default' => 0]);
 
-                $invoice = InvoiceScheme::find($id);
                 $invoice->is_default = 1;
                 $invoice->save();
 

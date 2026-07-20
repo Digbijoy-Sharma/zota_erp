@@ -35,6 +35,23 @@ class InvoiceLayout extends Model
     }
 
     /**
+     * Master layout this row mirrors (store-side copies of a
+     * superadmin-managed layout).
+     */
+    public function master()
+    {
+        return $this->belongsTo(InvoiceLayout::class, 'master_invoice_layout_id');
+    }
+
+    /**
+     * Store-side mirrors of this (master) layout.
+     */
+    public function mirrors()
+    {
+        return $this->hasMany(InvoiceLayout::class, 'master_invoice_layout_id');
+    }
+
+    /**
      * Return list of invoice layouts for a business
      *
      * @param  int  $business_id

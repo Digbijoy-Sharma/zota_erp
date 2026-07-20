@@ -2412,29 +2412,7 @@ class TransactionUtil extends Util
                                         ->find($invoice_scheme_id);
             }
 
-            if ($scheme->scheme_type == 'blank') {
-                $prefix = $scheme->prefix;
-            } else {
-                $prefix = $scheme->prefix.date('Y').config('constants.invoice_scheme_separator');
-            }
-
-            //Count
-            if($scheme->number_type == 'sequential'){
-                $count = $scheme->start_number + $scheme->invoice_count;
-            } elseif($scheme->number_type == 'random'){
-                $max = (int)str_pad(1, $scheme->total_digits, '1');
-                $count = rand(1000, 9*$max);
-            }
-            $count = str_pad($count, $scheme->total_digits, '0', STR_PAD_LEFT);
-
-            //Prefix + count
-            $invoice_no = $prefix.$count;
-
-            //Increment the invoice count
-            $scheme->invoice_count = $scheme->invoice_count + 1;
-            $scheme->save();
-
-            return $invoice_no;
+            return $this->allocateInvoiceNumber($scheme);
         } elseif ($status == 'draft') {
             $ref_count = $this->setAndGetReferenceCount('draft', $business_id);
             $invoice_no = $this->generateReferenceNumber('draft', $ref_count, $business_id);
@@ -2448,6 +2426,83 @@ class TransactionUtil extends Util
         } else {
             return Str::random(5);
         }
+    }
+
+    /**
+     * Allocates the next invoice number from a scheme, safely.
+     *
+     * If the scheme is a store-side mirror of a master scheme
+     * (master_invoice_scheme_id set), the number is drawn from the
+     * MASTER row — one shared counter produces a single gapless
+     * serial series across every store business assigned to it
+     * (state-wise GST series: all stores under one GST number).
+     *
+     * Accuracy guarantees (GST-sensitive):
+     * - The counter row is read with a row lock (lockForUpdate), so
+     *   two sales — same store or different stores — can never be
+     *   issued the same number.
+     * - Allocation happens inside the caller's DB transaction (POS
+     *   sale flows already run in one); if the sale fails and rolls
+     *   back, the counter increment rolls back with it — no gaps.
+     * - When no transaction is active (e.g. cron-generated recurring
+     *   invoices), a short transaction is opened just for the
+     *   allocation so the lock still applies.
+     *
+     * @param  \App\InvoiceScheme  $scheme  the scheme resolved for the sale
+     * @return string
+     */
+    public function allocateInvoiceNumber($scheme)
+    {
+        $allocate = function () use ($scheme) {
+            // Counter authority: the master scheme when this is a
+            // mirror, otherwise the scheme itself. The master also
+            // provides the format (prefix/digits/start) so every
+            // store in the group prints an identical series.
+            $counter_id = ! empty($scheme->master_invoice_scheme_id)
+                ? $scheme->master_invoice_scheme_id
+                : $scheme->id;
+
+            $counter_scheme = InvoiceScheme::where('id', $counter_id)->lockForUpdate()->first();
+
+            // Master row deleted/missing — fall back to the local
+            // scheme so sales never hard-fail on a config gap.
+            if (empty($counter_scheme)) {
+                $counter_scheme = InvoiceScheme::where('id', $scheme->id)->lockForUpdate()->first();
+            }
+
+            if ($counter_scheme->scheme_type == 'blank') {
+                $prefix = $counter_scheme->prefix;
+            } else {
+                $prefix = $counter_scheme->prefix.date('Y').config('constants.invoice_scheme_separator');
+            }
+
+            //Count
+            if ($counter_scheme->number_type == 'sequential') {
+                $count = $counter_scheme->start_number + $counter_scheme->invoice_count;
+            } elseif ($counter_scheme->number_type == 'random') {
+                $max = (int) str_pad(1, $counter_scheme->total_digits, '1');
+                $count = rand(1000, 9 * $max);
+            }
+            $count = str_pad($count, $counter_scheme->total_digits, '0', STR_PAD_LEFT);
+
+            //Prefix + count
+            $invoice_no = $prefix.$count;
+
+            //Increment the invoice count
+            $counter_scheme->invoice_count = $counter_scheme->invoice_count + 1;
+            $counter_scheme->save();
+
+            return $invoice_no;
+        };
+
+        // Inside an active transaction the lock is held (and the
+        // increment rolled back) with the caller's work. Outside one,
+        // open a short transaction so the lock is effective.
+        if (DB::transactionLevel() > 0) {
+            return $allocate();
+        }
+
+        return DB::transaction($allocate);
     }
 
     private function getInvoiceScheme($business_id, $location_id)

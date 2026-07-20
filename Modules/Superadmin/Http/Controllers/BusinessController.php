@@ -472,6 +472,30 @@ class BusinessController extends BaseController
                 }
             }
 
+            //Auto-attach the state-wise invoice scheme/layout: if the
+            //new store carries a GST number and a master scheme is
+            //registered for that GSTIN, the store joins that shared
+            //serial invoice series immediately — no manual step.
+            try {
+                if (!empty($business->tax_number_1)) {
+                    $master_scheme = \App\InvoiceScheme::where('business_id', InvoiceAssignmentController::templateBusinessId())
+                        ->where('gst_number', $business->tax_number_1)
+                        ->first();
+                    if (!empty($master_scheme)) {
+                        $master_layout = \App\InvoiceLayout::where('business_id', InvoiceAssignmentController::templateBusinessId())
+                            ->where('is_default', 1)
+                            ->first();
+                        if (!empty($master_layout)) {
+                            InvoiceAssignmentController::attachToBusiness($master_scheme, $master_layout, $business);
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::error('Invoice scheme auto-attach during business creation failed: ' . $e->getMessage(), [
+                    'business_id' => $business->id,
+                ]);
+            }
+
             //Module function to be called after after business is created
             if (config('app.env') != 'demo') {
                 $this->moduleUtil->getModuleData('after_business_created', ['business' => $business]);

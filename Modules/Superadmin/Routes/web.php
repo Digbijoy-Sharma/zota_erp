@@ -49,6 +49,13 @@ Route::middleware('web', 'SetSessionData', 'auth', 'language', 'AdminSidebarMenu
     Route::get('/customers', [Modules\Superadmin\Http\Controllers\SuperadminCustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/{id}/toggle-global/{global}', [Modules\Superadmin\Http\Controllers\SuperadminCustomerController::class, 'toggleGlobal'])->name('customers.toggle-global');
 
+    // Centralised invoice schemes/layouts + GST-wise shared series
+    Route::get('/invoice-assignment', [Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::class, 'index'])->name('invoice-assignment.index');
+    Route::post('/invoice-assignment/assign', [Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::class, 'assign'])->name('invoice-assignment.assign');
+    Route::post('/invoice-assignment/business-gst', [Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::class, 'saveBusinessGst'])->name('invoice-assignment.business-gst');
+    Route::post('/invoice-assignment/scheme-gst', [Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::class, 'saveSchemeGst'])->name('invoice-assignment.scheme-gst');
+    Route::post('/invoice-assignment/reset-series', [Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::class, 'resetSeries'])->name('invoice-assignment.reset-series');
+
 });
 
 Route::middleware('web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu')->group(function () {

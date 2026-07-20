@@ -36,6 +36,15 @@
 		  	</a>
 		</li>
 
+		<li class="{{ $request->segment(2) == 'invoice-assignment' ? 'active active-sub' : '' }}">
+			<a href="{{action([\Modules\Superadmin\Http\Controllers\InvoiceAssignmentController::class, 'index'])}}">
+				<i class="fa fa-file-text-o"></i>
+				<span class="title">
+					@lang('superadmin::lang.invoice_assignment')
+				</span>
+		  	</a>
+		</li>
+
 		<!-- superadmin subscription -->
 			<li class="{{ $request->segment(2) == 'superadmin-subscription' ? 'active active-sub' : '' }}">
 			<a href = "{{action([\Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class, 'index'])}}"><i class="fa fa-refresh"></i>

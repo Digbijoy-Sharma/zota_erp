@@ -145,7 +145,9 @@ class AdminSidebarMenu
             if (auth()->user()->can('product.view') || auth()->user()->can('product.create') ||
                 auth()->user()->can('brand.view') || auth()->user()->can('unit.view') ||
                 auth()->user()->can('category.view') || auth()->user()->can('brand.create') ||
-                auth()->user()->can('unit.create') || auth()->user()->can('category.create')) {
+                auth()->user()->can('unit.create') || auth()->user()->can('category.create') ||
+                auth()->user()->can('manufacturer.view') || auth()->user()->can('manufacturer.create') ||
+                auth()->user()->can('division.view') || auth()->user()->can('division.create')) {
                 $menu->dropdown(
                     __('sale.products'),
                     function ($sub) {
@@ -197,6 +199,13 @@ class AdminSidebarMenu
                                 ['icon' => '', 'active' => request()->segment(1) == 'import-opening-stock']
                             );
                         }
+                        if (auth()->user()->can('stock_settings.import')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\ImportStockSettingsController::class, 'index']),
+                                __('lang_v1.import_stock_settings'),
+                                ['icon' => '', 'active' => request()->segment(1) == 'import-stock-settings']
+                            );
+                        }
                         if (auth()->user()->can('product.create')) {
                             $sub->url(
                                 action([\App\Http\Controllers\SellingPriceGroupController::class, 'index']),
@@ -230,6 +239,20 @@ class AdminSidebarMenu
                                 action([\App\Http\Controllers\BrandController::class, 'index']),
                                 __('brand.brands'),
                                 ['icon' => '', 'active' => request()->segment(1) == 'brands']
+                            );
+                        }
+                        if (auth()->user()->can('manufacturer.view') || auth()->user()->can('manufacturer.create')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\ManufacturerController::class, 'index']),
+                                __('lang_v1.manufacturer'),
+                                ['icon' => '', 'active' => request()->segment(1) == 'manufacturers']
+                            );
+                        }
+                        if (auth()->user()->can('division.view') || auth()->user()->can('division.create')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\DivisionController::class, 'index']),
+                                __('lang_v1.division'),
+                                ['icon' => '', 'active' => request()->segment(1) == 'divisions']
                             );
                         }
 

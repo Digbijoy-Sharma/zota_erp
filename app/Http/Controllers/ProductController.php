@@ -604,7 +604,7 @@ class ProductController extends Controller
 
     public function movementAnalysis()
     {
-        if (! auth()->user()->can('product.view')) {
+        if (! auth()->user()->can('stock_settings.movement_analysis')) {
             abort(403, 'Unauthorized action.');
         }
 

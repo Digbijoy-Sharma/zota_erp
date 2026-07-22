@@ -166,11 +166,13 @@
                                      @lang('report.stock_report')</a>
                                 </li>
                             @endcan
+                            @can('stock_settings.movement_analysis')
                             <li>
                                 <a href="#movement_analysis_tab" data-toggle="tab"
                                     aria-expanded="true"><i class="fa fa-line-chart" aria-hidden="true"></i>
                                  @lang('lang_v1.movement_analysis')</a>
                             </li>
+                            @endcan
                         </ul>
 
                         <div class="tab-content">
@@ -211,9 +213,11 @@
                                     @include('report.partials.stock_report_table')
                                 </div>
                             @endcan
+                            @can('stock_settings.movement_analysis')
                             <div class="tab-pane" id="movement_analysis_tab">
                                 @include('product.partials.movement_analysis')
                             </div>
+                            @endcan
                         </div>
                     </div>
                 </div>

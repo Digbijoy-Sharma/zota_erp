@@ -355,20 +355,15 @@ class ManageUserController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
-        // The role and location dropdowns on the edit form are
-        // populated from the super admin's OWN business (i.e. the
-        // current session's business) - not the target user's
-        // business. This mirrors how the original /users module
-        // works and is what the super admin expects when editing
-        // users from other stores: a single shared pool of roles
-        // and locations that gets applied uniformly.
         $user = auth()->user()->can('superadmin')
             ? User::with(['contactAccess'])->findOrFail($id)
             : User::where('business_id', $business_id)
                 ->with(['contactAccess'])
                 ->findOrFail($id);
 
-        $roles = $this->getRolesArray($business_id);
+        $target_business_id = $user->business_id ?? $business_id;
+
+        $roles = $this->getRolesArray($target_business_id);
 
         $contact_access = $user->contactAccess->pluck('name', 'id')->toArray();
 
@@ -378,7 +373,7 @@ class ManageUserController extends Controller
             $is_checked_checkbox = false;
         }
 
-        $locations = BusinessLocation::where('business_id', $business_id)
+        $locations = BusinessLocation::where('business_id', $target_business_id)
                                     ->get();
 
         $permitted_locations = $user->permitted_locations();
@@ -498,13 +493,13 @@ class ManageUserController extends Controller
                 : User::where('business_id', $business_id)->findOrFail($id);
 
             $user->update($user_data);
+            $target_business_id = $user->business_id ?? $business_id;
             $role_id = $request->input('role');
             $user_role = $user->roles->first();
             $previous_role = ! empty($user_role->id) ? $user_role->id : 0;
             if ($previous_role != $role_id) {
-                $is_admin = $this->moduleUtil->is_admin($user);
-                $all_admins = $this->getAdmins();
-                //If only one admin then can not change role
+                $is_admin = $this->moduleUtil->is_admin($user, $target_business_id);
+                $all_admins = $this->getAdmins($target_business_id);
                 if ($is_admin && count($all_admins) <= 1) {
                     throw new \Exception(__('lang_v1.cannot_change_role'));
                 }
@@ -552,9 +547,11 @@ class ManageUserController extends Controller
         return redirect('users')->with('status', $output);
     }
 
-    private function getAdmins()
+    private function getAdmins($business_id = null)
     {
-        $business_id = request()->session()->get('user.business_id');
+        if (empty($business_id)) {
+            $business_id = request()->session()->get('user.business_id');
+        }
         $admins = User::role('Admin#'.$business_id)->get();
 
         return $admins;

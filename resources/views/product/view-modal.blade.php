@@ -100,7 +100,55 @@
 						{{$tax_type[$product->tax_type]  }}<br>
 						<b>@lang('product.product_type'): </b>
 						@lang('lang_v1.' . $product->type)
-						
+
+	      			</div>
+	      			<div class="clearfix"></div>
+	      			<br>
+	      			<div class="col-sm-12">
+	      				<h4>@lang('lang_v1.pharmacy_details')</h4>
+	      			</div>
+	      			<div class="col-sm-4 invoice-col">
+						@if(!empty($product->manufacturer))
+							<b>@lang('lang_v1.manufacturer'): </b>
+							{{$product->manufacturer->name}}<br>
+						@endif
+						@if(!empty($product->division))
+							<b>@lang('lang_v1.division'): </b>
+							{{$product->division->name}}<br>
+						@endif
+						@if(!empty($product->hsn_code))
+							<b>@lang('lang_v1.hsn_code'): </b>
+							{{$product->hsn_code}}<br>
+						@endif
+						@if(!empty($product->drug_schedule))
+							<b>@lang('lang_v1.drug_schedule'): </b>
+							{{$product->drug_schedule}}<br>
+						@endif
+	      			</div>
+	      			<div class="col-sm-4 invoice-col">
+						@if(!empty($product->dosage_form))
+							<b>@lang('lang_v1.dosage_form'): </b>
+							{{$product->dosage_form}}<br>
+						@endif
+						@if(!empty($product->storage_condition))
+							<b>@lang('lang_v1.storage_condition'): </b>
+							{{$product->storage_condition}}<br>
+						@endif
+						@if($product->prescription_required)
+							<span class="label label-danger">@lang('lang_v1.prescription_required')</span><br>
+						@endif
+	      			</div>
+	      			<div class="col-sm-4 invoice-col">
+						<b>@lang('lang_v1.can_be_purchased'): </b>
+						{{ $product->can_be_purchased ? __('messages.yes') : __('messages.no') }}<br>
+						<b>@lang('lang_v1.can_be_stored'): </b>
+						{{ $product->can_be_stored ? __('messages.yes') : __('messages.no') }}<br>
+						<b>@lang('lang_v1.can_be_sold'): </b>
+						{{ $product->can_be_sold ? __('messages.yes') : __('messages.no') }}<br>
+						@if(!empty($product->product_tags))
+							<b>@lang('lang_v1.tags'): </b>
+							{{$product->product_tags}}
+						@endif
 	      			</div>
 	      			<div class="clearfix"></div>
 	      			<br>

@@ -258,6 +258,9 @@ class SuperadminProductController extends Controller
                 'profit_percent' => $mv->profit_percent,
                 'default_sell_price' => $mv->default_sell_price,
                 'sell_price_inc_tax' => $mv->sell_price_inc_tax,
+                'mrp_inc_tax' => $mv->mrp_inc_tax,
+                'ptr' => $mv->ptr,
+                'pts' => $mv->pts,
                 // Pointer back to the master variation row for reliable matching
                 'master_variation_id' => $mv->id,
             ]);
@@ -606,6 +609,8 @@ class SuperadminProductController extends Controller
             // pharma scalar fields
             'drug_schedule', 'prescription_required', 'hsn_code',
             'dosage_form', 'storage_condition',
+            'can_be_purchased', 'can_be_stored', 'can_be_sold',
+            'product_tags',
             'product_custom_field1', 'product_custom_field2',
             'product_custom_field3', 'product_custom_field4',
             'product_custom_field5', 'product_custom_field6',
@@ -640,6 +645,9 @@ class SuperadminProductController extends Controller
                         'profit_percent' => $master_var->profit_percent,
                         'default_sell_price' => $master_var->default_sell_price,
                         'sell_price_inc_tax' => $master_var->sell_price_inc_tax,
+                        'mrp_inc_tax' => $master_var->mrp_inc_tax,
+                        'ptr' => $master_var->ptr,
+                        'pts' => $master_var->pts,
                     ]);
                 }
             }
@@ -661,6 +669,9 @@ class SuperadminProductController extends Controller
                     'profit_percent' => $mv->profit_percent,
                     'default_sell_price' => $mv->default_sell_price,
                     'sell_price_inc_tax' => $mv->sell_price_inc_tax,
+                    'mrp_inc_tax' => $mv->mrp_inc_tax,
+                    'ptr' => $mv->ptr,
+                    'pts' => $mv->pts,
                 ]);
             } else {
                 $pv = ProductVariation::create([
@@ -678,6 +689,9 @@ class SuperadminProductController extends Controller
                     'profit_percent' => $mv->profit_percent,
                     'default_sell_price' => $mv->default_sell_price,
                     'sell_price_inc_tax' => $mv->sell_price_inc_tax,
+                    'mrp_inc_tax' => $mv->mrp_inc_tax,
+                    'ptr' => $mv->ptr,
+                    'pts' => $mv->pts,
                     'master_variation_id' => $mv->id,
                 ]);
             }
@@ -978,6 +992,10 @@ class SuperadminProductController extends Controller
             'hsn_code' => $source->hsn_code,
             'dosage_form' => $source->dosage_form,
             'storage_condition' => $source->storage_condition,
+            'can_be_purchased' => $source->can_be_purchased,
+            'can_be_stored' => $source->can_be_stored,
+            'can_be_sold' => $source->can_be_sold,
+            'product_tags' => $source->product_tags,
         ];
     }
 

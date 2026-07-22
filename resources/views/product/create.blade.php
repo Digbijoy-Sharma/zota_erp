@@ -172,7 +172,7 @@
                 <div class="input-group">
                     {!! Form::select('manufacturer_id', $manufacturers, !empty($duplicate_product->manufacturer_id) ? $duplicate_product->manufacturer_id : null, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
                     <span class="input-group-btn">
-                        <button type="button" @if(!auth()->user()->can('brand.create')) disabled @endif class="btn btn-default bg-white btn-flat btn-modal" data-href="{{action([\App\Http\Controllers\ManufacturerController::class, 'create'], ['quick_add' => true])}}" title="@lang('lang_v1.add_manufacturer')" data-container=".view_modal"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
+                        <button type="button" @if(!auth()->user()->can('manufacturer.create')) disabled @endif class="btn btn-default bg-white btn-flat btn-modal" data-href="{{action([\App\Http\Controllers\ManufacturerController::class, 'create'], ['quick_add' => true])}}" title="@lang('lang_v1.add_manufacturer')" data-container=".view_modal"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
                     </span>
                 </div>
             </div>
@@ -184,7 +184,7 @@
                 <div class="input-group">
                     {!! Form::select('division_id', $divisions, !empty($duplicate_product->division_id) ? $duplicate_product->division_id : null, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
                     <span class="input-group-btn">
-                        <button type="button" @if(!auth()->user()->can('brand.create')) disabled @endif class="btn btn-default bg-white btn-flat btn-modal" data-href="{{action([\App\Http\Controllers\DivisionController::class, 'create'], ['quick_add' => true])}}" title="@lang('lang_v1.add_division')" data-container=".view_modal"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
+                        <button type="button" @if(!auth()->user()->can('division.create')) disabled @endif class="btn btn-default bg-white btn-flat btn-modal" data-href="{{action([\App\Http\Controllers\DivisionController::class, 'create'], ['quick_add' => true])}}" title="@lang('lang_v1.add_division')" data-container=".view_modal"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
                     </span>
                 </div>
             </div>

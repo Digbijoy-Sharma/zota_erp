@@ -71,6 +71,16 @@ class Product extends Model
         return $this->belongsTo(\App\Brands::class);
     }
 
+    public function manufacturer()
+    {
+        return $this->belongsTo(\App\Manufacturer::class);
+    }
+
+    public function division()
+    {
+        return $this->belongsTo(\App\Division::class);
+    }
+
     /**
      * Get the unit associated with the product.
      */

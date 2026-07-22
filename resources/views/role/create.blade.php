@@ -1327,6 +1327,135 @@
         </div>
         </div>
         <hr>
+
+        <div class="row check_group">
+        <div class="col-md-1">
+          <h4>@lang( 'role.manufacturer' )</h4>
+        </div>
+        <div class="col-md-2">
+          <div class="checkbox">
+              <label>
+                <input type="checkbox" class="check_all input-icheck" > {{ __( 'role.select_all' ) }}
+              </label>
+            </div>
+        </div>
+        <div class="col-md-9">
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'manufacturer.view', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.manufacturer.view' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'manufacturer.create', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.manufacturer.create' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'manufacturer.update', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.manufacturer.update' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'manufacturer.delete', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.manufacturer.delete' ) }}
+              </label>
+            </div>
+          </div>
+        </div>
+        </div>
+        <hr>
+
+        <div class="row check_group">
+        <div class="col-md-1">
+          <h4>@lang( 'role.division' )</h4>
+        </div>
+        <div class="col-md-2">
+          <div class="checkbox">
+              <label>
+                <input type="checkbox" class="check_all input-icheck" > {{ __( 'role.select_all' ) }}
+              </label>
+            </div>
+        </div>
+        <div class="col-md-9">
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'division.view', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.division.view' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'division.create', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.division.create' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'division.update', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.division.update' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'division.delete', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.division.delete' ) }}
+              </label>
+            </div>
+          </div>
+        </div>
+        </div>
+        <hr>
+
+        <div class="row check_group">
+        <div class="col-md-1">
+          <h4>@lang( 'role.stock_settings' )</h4>
+        </div>
+        <div class="col-md-2">
+          <div class="checkbox">
+              <label>
+                <input type="checkbox" class="check_all input-icheck" > {{ __( 'role.select_all' ) }}
+              </label>
+            </div>
+        </div>
+        <div class="col-md-9">
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'stock_settings.import', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.stock_settings.import' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'stock_settings.movement_analysis', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.stock_settings.movement_analysis' ) }}
+              </label>
+            </div>
+          </div>
+        </div>
+        </div>
+        <hr>
+
         <div class="row check_group">
         <div class="col-md-1">
           <h4>@lang( 'role.tax_rate' )</h4>

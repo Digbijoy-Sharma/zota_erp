@@ -260,6 +260,60 @@ class BusinessUtil extends Util
     }
 
     /**
+     * Clone a newly created role from the template business into
+     * all existing active businesses that don't already have it.
+     */
+    public function cloneNewRoleToAllBusinesses($role)
+    {
+        $template_business = Business::orderBy('id')->first();
+        if (! $template_business || (int) $role->business_id !== (int) $template_business->id) {
+            return 0;
+        }
+
+        $base_name = preg_replace('/#\d+$/', '', $role->name);
+        if ($base_name === '' || $base_name === $role->name) {
+            return 0;
+        }
+
+        $permission_names = $role->permissions->pluck('name')->all();
+        $cloned = 0;
+
+        $businesses = Business::where('id', '!=', $template_business->id)
+            ->where('is_active', 1)
+            ->get();
+
+        foreach ($businesses as $business) {
+            $existing = Role::where('business_id', $business->id)
+                ->where('name', $base_name . '#' . $business->id)
+                ->first();
+
+            if ($existing) {
+                continue;
+            }
+
+            try {
+                $new_role = Role::create([
+                    'name' => $base_name . '#' . $business->id,
+                    'business_id' => $business->id,
+                    'guard_name' => 'web',
+                    'is_default' => $role->is_default,
+                    'is_service_staff' => $role->is_service_staff ?? 0,
+                ]);
+
+                if (! empty($permission_names)) {
+                    $new_role->syncPermissions($permission_names);
+                }
+
+                $cloned++;
+            } catch (\Throwable $e) {
+                \Log::warning('Role clone failed for business ' . $business->id . ': ' . $e->getMessage());
+            }
+        }
+
+        return $cloned;
+    }
+
+    /**
      * Propagate a role's current permission set to every other
      * business that has a role with the same base name.
      *

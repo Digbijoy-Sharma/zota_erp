@@ -47,10 +47,13 @@
                     <span class="pull-right"><small><i>@lang('product.inc_of_tax')</i></small></span>
                 </th>
                 <th class="{{$class}}">@lang('product.profit_percent')</th>
-                <th class="{{$class}}">@lang('product.default_selling_price') 
+                <th class="{{$class}}">@lang('product.default_selling_price')
                 <br/>
                 <small><i><span class="dsp_label"></span></i></small>
                 </th>
+                <th class="{{$class}}">@lang('lang_v1.mrp_inc_tax')</th>
+                <th class="{{$class}}">@lang('lang_v1.ptr')</th>
+                <th class="{{$class}}">@lang('lang_v1.pts')</th>
                 <th>@lang('lang_v1.variation_images')</th>
                 <th><button type="button" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-accent add_variation_value_row">+</button></th>
             </tr>
@@ -95,6 +98,15 @@
                         {!! Form::text($array_name . '[' . $row_index .'][' . $variation_array_name . '][' . $variation_row_index . '][default_sell_price]', @num_format($variation->default_sell_price), ['class' => 'form-control input-sm variable_dsp input_number', 'placeholder' => __('product.exc_of_tax'), 'required']); !!}
 
                         {!! Form::text($array_name . '[' . $row_index .'][' . $variation_array_name . '][' . $variation_row_index . '][sell_price_inc_tax]', @num_format($variation->sell_price_inc_tax), ['class' => 'form-control input-sm variable_dsp_inc_tax input_number', 'placeholder' => __('product.inc_of_tax'), 'required']); !!}
+                    </td>
+                    <td class="{{$class}}">
+                        {!! Form::text($array_name . '[' . $row_index .'][' . $variation_array_name . '][' . $variation_row_index . '][mrp_inc_tax]', @num_format($variation->mrp_inc_tax), ['class' => 'form-control input-sm input_number', 'placeholder' => __('lang_v1.mrp_inc_tax')]); !!}
+                    </td>
+                    <td class="{{$class}}">
+                        {!! Form::text($array_name . '[' . $row_index .'][' . $variation_array_name . '][' . $variation_row_index . '][ptr]', @num_format($variation->ptr), ['class' => 'form-control input-sm input_number', 'placeholder' => __('lang_v1.ptr')]); !!}
+                    </td>
+                    <td class="{{$class}}">
+                        {!! Form::text($array_name . '[' . $row_index .'][' . $variation_array_name . '][' . $variation_row_index . '][pts]', @num_format($variation->pts), ['class' => 'form-control input-sm input_number', 'placeholder' => __('lang_v1.pts')]); !!}
                     </td>
                     <td class="variation-image-cell">
                         @php 

@@ -15,6 +15,9 @@
 				        <th>@lang('product.default_selling_price') (@lang('product.exc_of_tax'))</th>
 				        <th>@lang('product.default_selling_price') (@lang('product.inc_of_tax'))</th>
 				    @endcan
+				    <th>@lang('lang_v1.mrp_inc_tax')</th>
+				    <th>@lang('lang_v1.ptr')</th>
+				    <th>@lang('lang_v1.pts')</th>
 				    @if(!empty($allowed_group_prices))
 			        	<th>@lang('lang_v1.group_prices')</th>
 			        @endif
@@ -43,6 +46,15 @@
 							<span class="display_currency" data-currency_symbol="true">{{ $variation->sell_price_inc_tax }}</span>
 						</td>
 					@endcan
+					<td>
+						<span class="display_currency" data-currency_symbol="true">{{ $variation->mrp_inc_tax }}</span>
+					</td>
+					<td>
+						<span class="display_currency" data-currency_symbol="true">{{ $variation->ptr }}</span>
+					</td>
+					<td>
+						<span class="display_currency" data-currency_symbol="true">{{ $variation->pts }}</span>
+					</td>
 					@if(!empty($allowed_group_prices))
 			        	<td class="td-full-width">
 			        		@foreach($allowed_group_prices as $key => $value)

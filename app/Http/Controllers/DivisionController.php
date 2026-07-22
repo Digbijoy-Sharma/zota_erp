@@ -10,7 +10,7 @@ class DivisionController extends Controller
 {
     public function index()
     {
-        if (! auth()->user()->can('brand.view') && ! auth()->user()->can('brand.create')) {
+        if (! auth()->user()->can('division.view') && ! auth()->user()->can('division.create')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -23,11 +23,11 @@ class DivisionController extends Controller
             return Datatables::of($divisions)
                 ->addColumn(
                     'action',
-                    '@can("brand.update")
+                    '@can("division.update")
                     <button data-href="{{action(\'App\Http\Controllers\DivisionController@edit\', [$id])}}" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-primary edit_division_button"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</button>
                         &nbsp;
                     @endcan
-                    @can("brand.delete")
+                    @can("division.delete")
                         <button data-href="{{action(\'App\Http\Controllers\DivisionController@destroy\', [$id])}}" class="tw-dw-btn tw-dw-btn-outline tw-dw-btn-xs tw-dw-btn-error delete_division_button"><i class="glyphicon glyphicon-trash"></i> @lang("messages.delete")</button>
                     @endcan'
                 )
@@ -41,7 +41,7 @@ class DivisionController extends Controller
 
     public function create()
     {
-        if (! auth()->user()->can('brand.create')) {
+        if (! auth()->user()->can('division.create')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -52,7 +52,7 @@ class DivisionController extends Controller
 
     public function store(Request $request)
     {
-        if (! auth()->user()->can('brand.create')) {
+        if (! auth()->user()->can('division.create')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -79,7 +79,7 @@ class DivisionController extends Controller
 
     public function edit($id)
     {
-        if (! auth()->user()->can('brand.update')) {
+        if (! auth()->user()->can('division.update')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -93,7 +93,7 @@ class DivisionController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (! auth()->user()->can('brand.update')) {
+        if (! auth()->user()->can('division.update')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -124,7 +124,7 @@ class DivisionController extends Controller
 
     public function destroy($id)
     {
-        if (! auth()->user()->can('brand.delete')) {
+        if (! auth()->user()->can('division.delete')) {
             abort(403, 'Unauthorized action.');
         }
 

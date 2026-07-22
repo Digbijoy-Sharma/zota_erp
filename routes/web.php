@@ -28,6 +28,7 @@ use App\Http\Controllers\ImportProductsController;
 use App\Http\Controllers\ImportPurchaseOrdersController;
 use App\Http\Controllers\ImportPurchasesController;
 use App\Http\Controllers\ImportSalesController;
+use App\Http\Controllers\ImportStockSettingsController;
 use App\Http\Controllers\Install;
 use App\Http\Controllers\InvoiceLayoutController;
 use App\Http\Controllers\InvoiceSchemeController;
@@ -395,6 +396,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     //Import opening stock
     Route::get('/import-opening-stock', [ImportOpeningStockController::class, 'index']);
     Route::post('/import-opening-stock/store', [ImportOpeningStockController::class, 'store']);
+
+    //Import stock settings (min/max/movement tag)
+    Route::get('/import-stock-settings', [ImportStockSettingsController::class, 'index']);
+    Route::post('/import-stock-settings/download', [ImportStockSettingsController::class, 'download']);
+    Route::post('/import-stock-settings/import', [ImportStockSettingsController::class, 'import']);
 
     //Sell return
     Route::get('validate-invoice-to-return/{invoice_no}', [SellReturnController::class, 'validateInvoiceToReturn']);

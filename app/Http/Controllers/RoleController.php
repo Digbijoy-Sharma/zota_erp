@@ -175,6 +175,9 @@ class RoleController extends Controller
                 if (! empty($permissions)) {
                     $role->syncPermissions($permissions);
                 }
+
+                $this->businessUtil->cloneNewRoleToAllBusinesses($role->refresh());
+
                 db::commit();
                 $output = ['success' => 1,
                     'msg' => __('user.role_added'),

@@ -68,6 +68,15 @@
 
         {!! Form::text($name . '[' . $variation_index . '][variations][' . $value_index . '][sell_price_inc_tax]', $default, ['class' => 'form-control input-sm variable_dsp_inc_tax input_number', 'placeholder' => __('product.inc_of_tax'), 'required']); !!}
     </td>
+    <td class="{{$class}}">
+        {!! Form::text($name . '[' . $variation_index . '][variations][' . $value_index . '][mrp_inc_tax]', $default, ['class' => 'form-control input-sm input_number', 'placeholder' => __('lang_v1.mrp_inc_tax')]); !!}
+    </td>
+    <td class="{{$class}}">
+        {!! Form::text($name . '[' . $variation_index . '][variations][' . $value_index . '][ptr]', $default, ['class' => 'form-control input-sm input_number', 'placeholder' => __('lang_v1.ptr')]); !!}
+    </td>
+    <td class="{{$class}}">
+        {!! Form::text($name . '[' . $variation_index . '][variations][' . $value_index . '][pts]', $default, ['class' => 'form-control input-sm input_number', 'placeholder' => __('lang_v1.pts')]); !!}
+    </td>
     <td class="variation-image-cell">
         <div class="variation-image-upload">
             {{-- Hidden file input --}}

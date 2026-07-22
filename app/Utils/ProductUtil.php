@@ -170,6 +170,9 @@ class ProductUtil extends Util
                         'profit_percent' => $this->num_uf($v['profit_percent']),
                         'default_sell_price' => $this->num_uf($v['default_sell_price']),
                         'sell_price_inc_tax' => $this->num_uf($v['sell_price_inc_tax']),
+                        'mrp_inc_tax' => isset($v['mrp_inc_tax']) ? $this->num_uf($v['mrp_inc_tax']) : 0,
+                        'ptr' => isset($v['ptr']) ? $this->num_uf($v['ptr']) : 0,
+                        'pts' => isset($v['pts']) ? $this->num_uf($v['pts']) : 0,
                     ];
                     $c++;
                     $images[] = 'variation_images_'.$key.'_'.$k;
@@ -217,6 +220,9 @@ class ProductUtil extends Util
                         'profit_percent' => $this->num_uf($v['profit_percent']),
                         'default_sell_price' => $this->num_uf($v['default_sell_price']),
                         'sell_price_inc_tax' => $this->num_uf($v['sell_price_inc_tax']),
+                        'mrp_inc_tax' => isset($v['mrp_inc_tax']) ? $this->num_uf($v['mrp_inc_tax']) : 0,
+                        'ptr' => isset($v['ptr']) ? $this->num_uf($v['ptr']) : 0,
+                        'pts' => isset($v['pts']) ? $this->num_uf($v['pts']) : 0,
                     ];
                     if (! empty($v['sub_sku'])) {
                         $data['sub_sku'] = $v['sub_sku'];
@@ -270,6 +276,9 @@ class ProductUtil extends Util
                         'profit_percent' => $this->num_uf($v['profit_percent']),
                         'default_sell_price' => $this->num_uf($v['default_sell_price']),
                         'sell_price_inc_tax' => $this->num_uf($v['sell_price_inc_tax']),
+                        'mrp_inc_tax' => isset($v['mrp_inc_tax']) ? $this->num_uf($v['mrp_inc_tax']) : 0,
+                        'ptr' => isset($v['ptr']) ? $this->num_uf($v['ptr']) : 0,
+                        'pts' => isset($v['pts']) ? $this->num_uf($v['pts']) : 0,
                     ];
                     $c++;
                     $media[] = 'variation_images_'.$key.'_'.$k;

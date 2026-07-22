@@ -110,4 +110,20 @@ return [
     'dashboard.data' => 'View Home data',
     'profit_loss_report.view' => 'View profit/loss report',
     'direct_sell.access' => 'Access sell',
+
+    'manufacturer' => 'Manufacturer',
+    'manufacturer.view' => 'View manufacturer',
+    'manufacturer.create' => 'Add manufacturer',
+    'manufacturer.update' => 'Edit manufacturer',
+    'manufacturer.delete' => 'Delete manufacturer',
+
+    'division' => 'Division',
+    'division.view' => 'View division',
+    'division.create' => 'Add division',
+    'division.update' => 'Edit division',
+    'division.delete' => 'Delete division',
+
+    'stock_settings' => 'Stock Settings',
+    'stock_settings.import' => 'Import stock settings (Min/Max/Movement Tag)',
+    'stock_settings.movement_analysis' => 'View movement analysis',
 ];

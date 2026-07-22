@@ -1257,6 +1257,11 @@ class ProductUtil extends Util
             }
             $new_quantity = $this->num_uf($data['quantity']) * $multiplier;
 
+            //Damaged/lost quantity is additional to (not part of) the received
+            //quantity above - it's tracked for reporting only and never added to stock.
+            $damaged_qty = ! empty($data['quantity_damaged']) ? $this->num_uf($data['quantity_damaged']) * $multiplier : 0;
+            $lost_qty = ! empty($data['quantity_lost']) ? $this->num_uf($data['quantity_lost']) * $multiplier : 0;
+
             $new_quantity_f = $this->num_f($new_quantity);
             $old_qty = 0;
             //update existing purchase line
@@ -1279,6 +1284,10 @@ class ProductUtil extends Util
             }
 
             $purchase_line->quantity = $new_quantity;
+            $purchase_line->quantity_damaged = $damaged_qty;
+            $purchase_line->quantity_lost = $lost_qty;
+            $purchase_line->damage_loss_reason = ! empty($data['damage_loss_reason']) ? $data['damage_loss_reason'] : null;
+            $purchase_line->damage_loss_note = ! empty($data['damage_loss_note']) ? $data['damage_loss_note'] : null;
             $purchase_line->pp_without_discount = ($this->num_uf($data['pp_without_discount'], $currency_details) * $exchange_rate) / $multiplier;
             $purchase_line->discount_percent = $this->num_uf($data['discount_percent'], $currency_details);
             $purchase_line->purchase_price = ($this->num_uf($data['purchase_price'], $currency_details) * $exchange_rate) / $multiplier;
@@ -1470,6 +1479,7 @@ class ProductUtil extends Util
         if (! empty($sub_unit)) {
             $multiplier = $sub_unit->base_unit_multiplier;
             $purchase_line->quantity = $purchase_line->quantity / $multiplier;
+            $purchase_line->po_quantity_purchased = $purchase_line->po_quantity_purchased / $multiplier;
             $purchase_line->pp_without_discount = $purchase_line->pp_without_discount * $multiplier;
             $purchase_line->purchase_price = $purchase_line->purchase_price * $multiplier;
             $purchase_line->purchase_price_inc_tax = $purchase_line->purchase_price_inc_tax * $multiplier;
@@ -1477,6 +1487,8 @@ class ProductUtil extends Util
             $purchase_line->quantity_returned = $purchase_line->quantity_returned / $multiplier;
             $purchase_line->quantity_sold = $purchase_line->quantity_sold / $multiplier;
             $purchase_line->quantity_adjusted = $purchase_line->quantity_adjusted / $multiplier;
+            $purchase_line->quantity_damaged = $purchase_line->quantity_damaged / $multiplier;
+            $purchase_line->quantity_lost = $purchase_line->quantity_lost / $multiplier;
         }
 
         //SubUnits

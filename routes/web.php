@@ -25,6 +25,8 @@ use App\Http\Controllers\GroupTaxController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ImportOpeningStockController;
 use App\Http\Controllers\ImportProductsController;
+use App\Http\Controllers\ImportPurchaseOrdersController;
+use App\Http\Controllers\ImportPurchasesController;
 use App\Http\Controllers\ImportSalesController;
 use App\Http\Controllers\Install;
 use App\Http\Controllers\InvoiceLayoutController;
@@ -215,6 +217,14 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 
     Route::post('/import-purchase-products', [PurchaseController::class, 'importPurchaseProducts']);
+    Route::get('/import-purchases', [ImportPurchasesController::class, 'index']);
+    Route::post('/import-purchases/preview', [ImportPurchasesController::class, 'preview']);
+    Route::post('/import-purchases', [ImportPurchasesController::class, 'import']);
+    Route::get('/revert-purchase-import/{batch}', [ImportPurchasesController::class, 'revertPurchaseImport']);
+    Route::get('/import-purchase-orders', [ImportPurchaseOrdersController::class, 'index']);
+    Route::post('/import-purchase-orders/preview', [ImportPurchaseOrdersController::class, 'preview']);
+    Route::post('/import-purchase-orders', [ImportPurchaseOrdersController::class, 'import']);
+    Route::get('/revert-purchase-order-import/{batch}', [ImportPurchaseOrdersController::class, 'revertPurchaseOrderImport']);
     Route::post('/purchases/update-status', [PurchaseController::class, 'updateStatus']);
     Route::get('/purchases/get_products', [PurchaseController::class, 'getProducts']);
     Route::get('/purchases/get_suppliers', [PurchaseController::class, 'getSuppliers']);
@@ -301,6 +311,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/reports/stock-expiry-update', [ReportController::class, 'updateStockExpiryReport'])->name('updateStockExpiryReport');
     Route::get('/reports/customer-group', [ReportController::class, 'getCustomerGroup']);
     Route::get('/reports/product-purchase-report', [ReportController::class, 'getproductPurchaseReport']);
+    Route::get('/reports/damage-loss-report', [ReportController::class, 'damageLossReport']);
     Route::get('/reports/product-sell-grouped-by', [ReportController::class, 'productSellReportBy']);
     Route::get('/reports/product-sell-report', [ReportController::class, 'getproductSellReport']);
     Route::get('/reports/purchase-sale-product', [ReportController::class, 'purchaseSaleProductReport']);
@@ -526,6 +537,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])
     Route::get('/load-more-notifications', [HomeController::class, 'loadMoreNotifications']);
     Route::get('/get-total-unread', [HomeController::class, 'getTotalUnreadNotifications']);
     Route::get('/purchases/print/{id}', [PurchaseController::class, 'printInvoice']);
+    Route::get('/purchases/{id}/grn-pdf', [PurchaseController::class, 'downloadGrnPdf'])->name('purchase.downloadGrnPdf');
     Route::get('/purchases/{id}', [PurchaseController::class, 'show']);
     Route::get('/download-purchase-order/{id}/pdf', [PurchaseOrderController::class, 'downloadPdf'])->name('purchaseOrder.downloadPdf');
     Route::get('/sells/{id}', [SellController::class, 'show']);

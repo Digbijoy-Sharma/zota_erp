@@ -133,6 +133,18 @@ class Util
         return ['received' => __('lang_v1.received'), 'pending' => __('lang_v1.pending'), 'ordered' => __('lang_v1.ordered')];
     }
 
+    //Returns the list of reasons selectable when marking a purchase line as damaged/lost
+    public function damageLossReasons()
+    {
+        return [
+            'damaged_in_transit' => __('lang_v1.damaged_in_transit'),
+            'manufacturing_defect' => __('lang_v1.manufacturing_defect'),
+            'expired_on_arrival' => __('lang_v1.expired_on_arrival'),
+            'short_received' => __('lang_v1.short_received'),
+            'other' => __('lang_v1.other'),
+        ];
+    }
+
     /**
      * Defines available Payment Types
      *

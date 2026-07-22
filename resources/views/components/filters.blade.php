@@ -23,6 +23,77 @@
     }
     .pf-open .pf-btn::before { transform: scaleX(1); }
     .pf-open .pf-btn { border-bottom-color: #e5e7eb !important; }
+
+    /* modern inputs/selects inside filter panels */
+    .pf-container .form-group label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #344054;
+        margin-bottom: 4px;
+    }
+    .pf-container select.form-control,
+    .pf-container input.form-control,
+    .pf-container textarea.form-control {
+        height: 40px;
+        padding: 6px 12px;
+        border: 1px solid #d8dce6;
+        border-radius: 10px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+        background-color: #fff;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .pf-container textarea.form-control { height: auto; }
+    .pf-container select.form-control:focus,
+    .pf-container input.form-control:focus,
+    .pf-container textarea.form-control:focus {
+        border-color: var(--theme-700, #004EEB);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-700, #004EEB) 15%, transparent);
+        outline: none;
+    }
+    .pf-container .select2-container--default .select2-selection--single {
+        height: 40px;
+        border: 1px solid #d8dce6;
+        border-radius: 10px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .pf-container .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px;
+        padding-left: 12px;
+        color: #344054;
+    }
+    .pf-container .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 38px;
+        right: 8px;
+    }
+    .pf-container .select2-container--default.select2-container--open .select2-selection--single,
+    .pf-container .select2-container--default .select2-selection--single:focus {
+        border-color: var(--theme-700, #004EEB);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-700, #004EEB) 15%, transparent);
+    }
+    .pf-container .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .pf-container label.tw-flex,
+    .pf-container .checkbox label,
+    .pf-container label:has(.input-icheck) {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 40px;
+        padding: 0 12px;
+        border: 1px solid #d8dce6;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+        font-size: 13px;
+        cursor: pointer;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .pf-container label:has(.input-icheck):hover {
+        border-color: var(--theme-700, #004EEB);
+    }
 </style>
 @endonce
 
@@ -44,7 +115,7 @@ function pfToggle(id) {
 @endonce
 
 <div id="{{ $filterId }}"
-     class="tw-bg-white tw-rounded-xl tw-shadow-sm tw-ring-1 tw-ring-gray-200 tw-mb-4 tw-overflow-hidden tw-transition-shadow tw-duration-200 hover:tw-shadow-md {{ $isOpen ? 'pf-open' : '' }}">
+     class="pf-container tw-bg-white tw-rounded-xl tw-shadow-sm tw-ring-1 tw-ring-gray-200 tw-mb-4 tw-overflow-hidden tw-transition-shadow tw-duration-200 hover:tw-shadow-md {{ $isOpen ? 'pf-open' : '' }}">
 
     {{-- Header --}}
     <button type="button"

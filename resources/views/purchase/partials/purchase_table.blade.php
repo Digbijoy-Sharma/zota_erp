@@ -7,7 +7,8 @@
         <tr>
             <th class="not-export">@lang('messages.action')</th>
             <th>@lang('messages.date')</th>
-            <th>@lang('purchase.ref_no')</th>
+            <th>@lang('purchase.grn_no')</th>
+            <th>@lang('purchase.linked_po')</th>
             <th>@lang('purchase.location')</th>
             <th>@lang('purchase.supplier')</th>
             <th>@lang('purchase.purchase_status')</th>
@@ -28,7 +29,7 @@
     </thead>
     <tfoot>
         <tr class="bg-gray font-17 text-center footer-total">
-            <td colspan="5"><strong>@lang('sale.total'):</strong></td>
+            <td colspan="6"><strong>@lang('sale.total'):</strong></td>
             <td class="footer_status_count"></td>
             <td class="footer_payment_status_count add_without_price_hide"></td>
             <td class="footer_purchase_total add_without_price_hide"></td>

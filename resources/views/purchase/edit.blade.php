@@ -537,6 +537,9 @@
   @include('contact.create', ['quick_add' => true])
 </div>
 @include('purchase.partials.import_purchase_products_modal')
+@if(session('business.enable_damage_loss_tracking'))
+    @include('purchase.partials.damage_loss_modal')
+@endif
 @endsection
 
 @section('javascript')

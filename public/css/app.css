@@ -1641,4 +1641,38 @@ body.lockscreen::-webkit-scrollbar-thumb:hover {
 .pos-subcat-pill:active,
 .pos-subcat-pill.is-active { background: #4f46e5; border-color: #4f46e5; color: white; transform: scale(0.96); }
 .pos-subcat-pill--all { border-style: dashed; }
+
+/* ===== Global Modern Form Controls ===== */
+.form-control {
+  border-color: #d8dce6;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.form-control:focus {
+  border-color: var(--theme-700, #004EEB);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-700, #004EEB) 15%, transparent);
+  outline: none;
+}
+.form-control[disabled],
+.form-control[readonly],
+fieldset[disabled] .form-control {
+  box-shadow: none;
+}
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+  border-color: #d8dce6;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  border-radius: 6px;
+}
+.select2-container--default.select2-container--open .select2-selection--single,
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+  border-color: var(--theme-700, #004EEB);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-700, #004EEB) 15%, transparent);
+}
+/* POS cart table + POS sell form keep their compact, square-edged inputs (overrides above via higher specificity) */
 /* ===== End POS Mobile View Fixes ===== */

@@ -1827,6 +1827,105 @@ class ReportController extends Controller
     }
 
     /**
+     * Lists every purchase line marked as damaged/lost during GRN entry.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function damageLossReport(Request $request)
+    {
+        if (! auth()->user()->can('purchase_n_sell_report.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = $request->session()->get('user.business_id');
+
+        if ($request->ajax()) {
+            $variation_id = $request->get('variation_id', null);
+
+            $query = PurchaseLine::join('transactions as t', 'purchase_lines.transaction_id', '=', 't.id')
+                    ->join('variations as v', 'purchase_lines.variation_id', '=', 'v.id')
+                    ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
+                    ->join('contacts as c', 't.contact_id', '=', 'c.id')
+                    ->join('products as p', 'pv.product_id', '=', 'p.id')
+                    ->join('business_locations as bl', 't.location_id', '=', 'bl.id')
+                    ->leftjoin('units as u', 'p.unit_id', '=', 'u.id')
+                    ->where('t.business_id', $business_id)
+                    ->where('t.type', 'purchase')
+                    ->where(function ($q) {
+                        $q->where('purchase_lines.quantity_damaged', '>', 0)
+                            ->orWhere('purchase_lines.quantity_lost', '>', 0);
+                    })
+                    ->select(
+                        'p.name as product_name',
+                        'p.type as product_type',
+                        'pv.name as product_variation',
+                        'v.name as variation_name',
+                        'v.sub_sku',
+                        'c.name as supplier',
+                        'c.supplier_business_name',
+                        'bl.name as location_name',
+                        't.id as transaction_id',
+                        't.ref_no',
+                        't.transaction_date as transaction_date',
+                        'purchase_lines.quantity_damaged',
+                        'purchase_lines.quantity_lost',
+                        'purchase_lines.damage_loss_reason',
+                        'purchase_lines.damage_loss_note',
+                        'u.short_name as unit',
+                        DB::raw('((purchase_lines.quantity_damaged + purchase_lines.quantity_lost) * purchase_lines.purchase_price_inc_tax) as damage_loss_value')
+                    );
+
+            if (! empty($variation_id)) {
+                $query->where('purchase_lines.variation_id', $variation_id);
+            }
+
+            $start_date = $request->get('start_date');
+            $end_date = $request->get('end_date');
+            if (! empty($start_date) && ! empty($end_date)) {
+                $query->whereBetween(DB::raw('date(t.transaction_date)'), [$start_date, $end_date]);
+            }
+
+            $permitted_locations = auth()->user()->permitted_locations();
+            if ($permitted_locations != 'all') {
+                $query->whereIn('t.location_id', $permitted_locations);
+            }
+
+            return Datatables::of($query)
+                ->editColumn('product_name', function ($row) {
+                    $product_name = $row->product_name;
+                    if ($row->product_type == 'variable') {
+                        $product_name .= ' - '.$row->product_variation.' - '.$row->variation_name;
+                    }
+
+                    return $product_name;
+                })
+                ->editColumn('ref_no', function ($row) {
+                    return '<a data-href="'.action([\App\Http\Controllers\PurchaseController::class, 'show'], [$row->transaction_id])
+                            .'" href="#" data-container=".view_modal" class="btn-modal">'.$row->ref_no.'</a>';
+                })
+                ->editColumn('transaction_date', '{{@format_date($transaction_date)}}')
+                ->editColumn('quantity_damaged', function ($row) {
+                    return (float) $row->quantity_damaged.' '.$row->unit;
+                })
+                ->editColumn('quantity_lost', function ($row) {
+                    return (float) $row->quantity_lost.' '.$row->unit;
+                })
+                ->editColumn('damage_loss_reason', function ($row) {
+                    return ! empty($row->damage_loss_reason) ? __('lang_v1.'.$row->damage_loss_reason) : '--';
+                })
+                ->editColumn('damage_loss_value', function ($row) {
+                    return '<span class="damage_loss_value" data-orig-value="'.$row->damage_loss_value.'">'.$this->transactionUtil->num_f($row->damage_loss_value, true).'</span>';
+                })
+                ->editColumn('supplier', '@if(!empty($supplier_business_name)) {{$supplier_business_name}},<br>@endif {{$supplier}}')
+                ->rawColumns(['ref_no', 'supplier', 'damage_loss_value'])
+                ->make(true);
+        }
+
+        return view('report.damage_loss_report');
+    }
+
+    /**
      * Shows product purchase report
      *
      * @return \Illuminate\Http\Response

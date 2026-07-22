@@ -4567,6 +4567,89 @@ class TransactionUtil extends Util
     }
 
     /**
+     * Deletes a purchase transaction, reverting stock if it was received.
+     *
+     * @param  int  $business_id
+     * @param  int  $transaction_id
+     * @return array
+     */
+    public function deletePurchase($business_id, $transaction_id)
+    {
+        //Check if return exist then not allowed
+        if ($this->isReturnExist($transaction_id)) {
+            return [
+                'success' => false,
+                'msg' => __('lang_v1.return_exist'),
+            ];
+        }
+
+        $transaction = Transaction::where('id', $transaction_id)
+                        ->where('business_id', $business_id)
+                        ->with(['purchase_lines'])
+                        ->first();
+
+        if (empty($transaction)) {
+            return [
+                'success' => false,
+                'msg' => __('messages.something_went_wrong'),
+            ];
+        }
+
+        //Check if lot numbers from the purchase is selected in sale
+        if (session()->get('business.enable_lot_number') == 1 && $this->isLotUsed($transaction)) {
+            return [
+                'success' => false,
+                'msg' => __('lang_v1.lot_numbers_are_used_in_sale'),
+            ];
+        }
+
+        $delete_purchase_lines = $transaction->purchase_lines;
+
+        $log_properities = [
+            'id' => $transaction->id,
+            'ref_no' => $transaction->ref_no,
+        ];
+        $this->activityLog($transaction, 'purchase_deleted', $log_properities);
+
+        $transaction_status = $transaction->status;
+        if ($transaction_status != 'received') {
+            $transaction->delete();
+        } else {
+            //Delete purchase lines first
+            $productUtil = new ProductUtil();
+            $delete_purchase_line_ids = [];
+            foreach ($delete_purchase_lines as $purchase_line) {
+                $delete_purchase_line_ids[] = $purchase_line->id;
+                $productUtil->decreaseProductQuantity(
+                    $purchase_line->product_id,
+                    $purchase_line->variation_id,
+                    $transaction->location_id,
+                    $purchase_line->quantity
+                );
+            }
+            PurchaseLine::where('transaction_id', $transaction->id)
+                        ->whereIn('id', $delete_purchase_line_ids)
+                        ->delete();
+
+            //Update mapping of purchase & Sell.
+            $this->adjustMappingPurchaseSellAfterEditingPurchase($transaction_status, $transaction, $delete_purchase_lines);
+        }
+
+        //Delete Transaction
+        $transaction->delete();
+
+        //Delete account transactions
+        AccountTransaction::where('transaction_id', $transaction_id)->delete();
+
+        \App\Events\PurchaseCreatedOrModified::dispatch($transaction, true);
+
+        return [
+            'success' => true,
+            'msg' => __('lang_v1.purchase_delete_success'),
+        ];
+    }
+
+    /**
      * Creates recurring invoice from existing sale
      *
      * @param  obj  $transaction, bool $is_draft
@@ -5192,6 +5275,7 @@ class TransactionUtil extends Util
                         'transactions.document',
                         'transactions.transaction_date',
                         'transactions.ref_no',
+                        'transactions.purchase_order_ids',
                         'contacts.name',
                         'contacts.supplier_business_name',
                         'transactions.status',

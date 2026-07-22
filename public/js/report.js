@@ -856,6 +856,68 @@ $(document).ready(function() {
         });
     }
 
+    //Damage & Loss Report
+    if ($('#dlr_date_filter').length == 1) {
+        $('#dlr_date_filter').daterangepicker(dateRangeSettings, function(start, end) {
+            $('#dlr_date_filter').val(
+                start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format)
+            );
+            damage_loss_report.ajax.reload();
+        });
+        $('#dlr_date_filter').on('cancel.daterangepicker', function(ev, picker) {
+            $('#dlr_date_filter').val('');
+            damage_loss_report.ajax.reload();
+        });
+    }
+    $('#damage_loss_report_form #variation_id, #damage_loss_report_form #dlr_date_filter').change(function() {
+        damage_loss_report.ajax.reload();
+    });
+    if ($('table#damage_loss_report_table').length == 1) {
+        damage_loss_report = $('table#damage_loss_report_table').DataTable({
+            processing: true,
+            serverSide: true,
+            fixedHeader: false,
+            aaSorting: [[3, 'desc']],
+            ajax: {
+                url: '/reports/damage-loss-report',
+                data: function(d) {
+                    var start = '';
+                    var end = '';
+                    if ($('#dlr_date_filter').val()) {
+                        start = $('input#dlr_date_filter')
+                            .data('daterangepicker')
+                            .startDate.format('YYYY-MM-DD');
+                        end = $('input#dlr_date_filter')
+                            .data('daterangepicker')
+                            .endDate.format('YYYY-MM-DD');
+                    }
+                    d.start_date = start;
+                    d.end_date = end;
+                    d.variation_id = $('#variation_id').val();
+                },
+            },
+            columns: [
+                { data: 'product_name', name: 'p.name' },
+                { data: 'sub_sku', name: 'v.sub_sku' },
+                { data: 'ref_no', name: 't.ref_no' },
+                { data: 'transaction_date', name: 't.transaction_date' },
+                { data: 'location_name', name: 'bl.name' },
+                { data: 'supplier', name: 'c.name' },
+                { data: 'quantity_damaged', name: 'purchase_lines.quantity_damaged' },
+                { data: 'quantity_lost', name: 'purchase_lines.quantity_lost' },
+                { data: 'damage_loss_reason', name: 'purchase_lines.damage_loss_reason' },
+                { data: 'damage_loss_note', name: 'purchase_lines.damage_loss_note' },
+                { data: 'damage_loss_value', name: 'damage_loss_value', searchable: false },
+            ],
+            fnDrawCallback: function(oSettings) {
+                $('#footer_damage_loss_value').text(
+                    sum_table_col($('#damage_loss_report_table'), 'damage_loss_value')
+                );
+                __currency_convert_recursively($('#damage_loss_report_table'));
+            },
+        });
+    }
+
     //Product Sell Report
     if ($('table#product_sell_report_table').length == 1) {
         $('#product_sr_date_filter').daterangepicker(

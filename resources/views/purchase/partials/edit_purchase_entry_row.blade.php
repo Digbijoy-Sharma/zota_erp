@@ -35,6 +35,9 @@
                         <th>@lang('product.mfg_date') / @lang('product.exp_date')</th>
                     @endif
                 @endif
+                @if(session('business.enable_damage_loss_tracking'))
+                    <th>@lang('purchase.damage_loss')</th>
+                @endif
                 <th>
                     <i class="fa fa-trash" aria-hidden="true"></i>
                 </th>
@@ -43,7 +46,7 @@
         <tbody>
     <?php $row_count = 0; ?>
     @foreach($purchase->purchase_lines as $purchase_line)
-        <tr @if(!empty($purchase_line->purchase_order_line) && !empty($common_settings['enable_purchase_order'])) data-purchase_order_id="{{$purchase_line->purchase_order_line->transaction_id}}" @endif  @if(!empty($purchase_line->purchase_requisition_line) && !empty($common_settings['enable_purchase_requisition'])) data-purchase_requisition_id="{{$purchase_line->purchase_requisition_line->transaction_id}}" @endif>
+        <tr data-row-index="{{ $loop->index }}" @if(!empty($purchase_line->purchase_order_line) && !empty($common_settings['enable_purchase_order'])) data-purchase_order_id="{{$purchase_line->purchase_order_line->transaction_id}}" @endif  @if(!empty($purchase_line->purchase_requisition_line) && !empty($common_settings['enable_purchase_requisition'])) data-purchase_requisition_id="{{$purchase_line->purchase_requisition_line->transaction_id}}" @endif>
             <td><span class="sr_number"></span></td>
             <td>
                 {{ $purchase_line->product->name }} ({{$purchase_line->variations->sub_sku}})
@@ -247,6 +250,28 @@
                     @endif
                 </td>
             @endif
+            @endif
+            @if(session('business.enable_damage_loss_tracking'))
+                @php
+                    $damage_loss_badge_parts = [];
+                    if (!empty($purchase_line->quantity_damaged)) {
+                        $damage_loss_badge_parts[] = number_format($purchase_line->quantity_damaged, session('business.quantity_precision', 2), session('currency')['decimal_separator'], session('currency')['thousand_separator']) . ' ' . __('purchase.quantity_damaged');
+                    }
+                    if (!empty($purchase_line->quantity_lost)) {
+                        $damage_loss_badge_parts[] = number_format($purchase_line->quantity_lost, session('business.quantity_precision', 2), session('currency')['decimal_separator'], session('currency')['thousand_separator']) . ' ' . __('purchase.quantity_lost');
+                    }
+                @endphp
+                <td class="text-center">
+                    <button type="button" class="btn btn-xs btn-default damage_loss_btn" data-row="{{ $loop->index }}" title="@lang('purchase.mark_damage_loss')">
+                        <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                    </button>
+                    <br>
+                    <small class="damage_loss_badge text-danger" style="white-space:nowrap;">{{ implode(', ', $damage_loss_badge_parts) }}</small>
+                    {!! Form::hidden('purchases[' . $loop->index . '][quantity_damaged]', @format_quantity($purchase_line->quantity_damaged), ['class' => 'damage_loss_qty_damaged']); !!}
+                    {!! Form::hidden('purchases[' . $loop->index . '][quantity_lost]', @format_quantity($purchase_line->quantity_lost), ['class' => 'damage_loss_qty_lost']); !!}
+                    {!! Form::hidden('purchases[' . $loop->index . '][damage_loss_reason]', $purchase_line->damage_loss_reason, ['class' => 'damage_loss_reason_hidden']); !!}
+                    {!! Form::hidden('purchases[' . $loop->index . '][damage_loss_note]', $purchase_line->damage_loss_note, ['class' => 'damage_loss_note_hidden']); !!}
+                </td>
             @endif
             <td><i class="fa fa-times remove_purchase_entry_row text-danger" title="Remove" style="cursor:pointer;"></i></td>
         </tr>

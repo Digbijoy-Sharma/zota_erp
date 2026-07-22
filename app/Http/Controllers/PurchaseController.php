@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\AccountTransaction;
 use App\Business;
 use App\BusinessLocation;
 use App\Contact;
@@ -115,7 +114,8 @@ class PurchaseController extends Controller
                         $html .= '<li><a href="#" data-href="'.action([\App\Http\Controllers\PurchaseController::class, 'show'], [$row->id]).'" class="btn-modal" data-container=".view_modal"><i class="fas fa-eye" aria-hidden="true"></i>'.__('messages.view').'</a></li>';
                     }
                     if (auth()->user()->can('purchase.view')) {
-                        $html .= '<li><a href="#" class="print-invoice" data-href="'.action([\App\Http\Controllers\PurchaseController::class, 'printInvoice'], [$row->id]).'"><i class="fas fa-print" aria-hidden="true"></i>'.__('messages.print').'</a></li>';
+                        $html .= '<li><a href="#" class="print-invoice" data-href="'.action([\App\Http\Controllers\PurchaseController::class, 'printInvoice'], [$row->id]).'"><i class="fas fa-print" aria-hidden="true"></i>'.__('purchase.print_grn').'</a></li>';
+                        $html .= '<li><a href="'.route('purchase.downloadGrnPdf', [$row->id]).'" target="_blank"><i class="fas fa-file-pdf" aria-hidden="true"></i>'.__('purchase.download_grn_pdf').'</a></li>';
                     }
                     if (auth()->user()->can('purchase.update')) {
                         $html .= '<li><a href="'.action([\App\Http\Controllers\PurchaseController::class, 'edit'], [$row->id]).'"><i class="fas fa-edit"></i>'.__('messages.edit').'</a></li>';
@@ -172,6 +172,15 @@ class PurchaseController extends Controller
                 ->removeColumn('id')
                 ->editColumn('ref_no', function ($row) {
                     return ! empty($row->return_exists) ? e($row->ref_no).' <small class="label bg-red label-round no-print" title="'.__('lang_v1.some_qty_returned').'"><i class="fas fa-undo"></i></small>' : e($row->ref_no);
+                })
+                ->addColumn('linked_po', function ($row) {
+                    if (empty($row->purchase_order_ids)) {
+                        return '--';
+                    }
+
+                    $po_ref_nos = Transaction::whereIn('id', $row->purchase_order_ids)->pluck('ref_no');
+
+                    return $po_ref_nos->isEmpty() ? '--' : e($po_ref_nos->implode(', '));
                 })
                 ->editColumn(
                     'final_total',
@@ -279,8 +288,10 @@ class PurchaseController extends Controller
 
         $common_settings = ! empty(session('business.common_settings')) ? session('business.common_settings') : [];
 
+        $damageLossReasons = $this->productUtil->damageLossReasons();
+
         return view('purchase.create')
-            ->with(compact('taxes', 'orderStatuses', 'business_locations', 'currency_details', 'default_purchase_status', 'customer_groups', 'types', 'shortcuts', 'payment_line', 'payment_types', 'accounts', 'bl_attributes', 'common_settings'));
+            ->with(compact('taxes', 'orderStatuses', 'business_locations', 'currency_details', 'default_purchase_status', 'customer_groups', 'types', 'shortcuts', 'payment_line', 'payment_types', 'accounts', 'bl_attributes', 'common_settings', 'damageLossReasons'));
     }
 
     /**
@@ -425,6 +436,7 @@ class PurchaseController extends Controller
 
             $output = ['success' => 1,
                 'msg' => __('purchase.purchase_add_success'),
+                'id' => $transaction->id,
             ];
         } catch (\Exception $e) {
             DB::rollBack();
@@ -618,6 +630,8 @@ class PurchaseController extends Controller
                                         ->pluck('ref_no', 'id');
         }
 
+        $damageLossReasons = $this->productUtil->damageLossReasons();
+
         return view('purchase.edit')
             ->with(compact(
                 'taxes',
@@ -631,7 +645,8 @@ class PurchaseController extends Controller
                 'types',
                 'shortcuts',
                 'purchase_orders',
-                'common_settings'
+                'common_settings',
+                'damageLossReasons'
             ));
     }
 
@@ -789,76 +804,11 @@ class PurchaseController extends Controller
             if (request()->ajax()) {
                 $business_id = request()->session()->get('user.business_id');
 
-                //Check if return exist then not allowed
-                if ($this->transactionUtil->isReturnExist($id)) {
-                    $output = [
-                        'success' => false,
-                        'msg' => __('lang_v1.return_exist'),
-                    ];
-
-                    return $output;
-                }
-
-                $transaction = Transaction::where('id', $id)
-                                ->where('business_id', $business_id)
-                                ->with(['purchase_lines'])
-                                ->first();
-
-                //Check if lot numbers from the purchase is selected in sale
-                if (request()->session()->get('business.enable_lot_number') == 1 && $this->transactionUtil->isLotUsed($transaction)) {
-                    $output = [
-                        'success' => false,
-                        'msg' => __('lang_v1.lot_numbers_are_used_in_sale'),
-                    ];
-
-                    return $output;
-                }
-
-                $delete_purchase_lines = $transaction->purchase_lines;
                 DB::beginTransaction();
 
-                $log_properities = [
-                    'id' => $transaction->id,
-                    'ref_no' => $transaction->ref_no,
-                ];
-                $this->transactionUtil->activityLog($transaction, 'purchase_deleted', $log_properities);
-
-                $transaction_status = $transaction->status;
-                if ($transaction_status != 'received') {
-                    $transaction->delete();
-                } else {
-                    //Delete purchase lines first
-                    $delete_purchase_line_ids = [];
-                    foreach ($delete_purchase_lines as $purchase_line) {
-                        $delete_purchase_line_ids[] = $purchase_line->id;
-                        $this->productUtil->decreaseProductQuantity(
-                            $purchase_line->product_id,
-                            $purchase_line->variation_id,
-                            $transaction->location_id,
-                            $purchase_line->quantity
-                        );
-                    }
-                    PurchaseLine::where('transaction_id', $transaction->id)
-                                ->whereIn('id', $delete_purchase_line_ids)
-                                ->delete();
-
-                    //Update mapping of purchase & Sell.
-                    $this->transactionUtil->adjustMappingPurchaseSellAfterEditingPurchase($transaction_status, $transaction, $delete_purchase_lines);
-                }
-
-                //Delete Transaction
-                $transaction->delete();
-
-                //Delete account transactions
-                AccountTransaction::where('transaction_id', $id)->delete();
-
-                PurchaseCreatedOrModified::dispatch($transaction, true);
+                $output = $this->transactionUtil->deletePurchase($business_id, $id);
 
                 DB::commit();
-
-                $output = ['success' => true,
-                    'msg' => __('lang_v1.purchase_delete_success'),
-                ];
             }
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1385,7 +1335,8 @@ class PurchaseController extends Controller
             }
 
             $output = ['success' => 1, 'receipt' => [], 'print_title' => $purchase->ref_no];
-            $output['receipt']['html_content'] = view('purchase.partials.show_details', compact('taxes', 'purchase', 'payment_methods', 'purchase_order_nos', 'purchase_order_dates', 'purchase_taxes'))->render();
+            $print_view = $purchase->type == 'purchase' ? 'purchase.partials.grn_print' : 'purchase.partials.show_details';
+            $output['receipt']['html_content'] = view($print_view, compact('taxes', 'purchase', 'payment_methods', 'purchase_order_nos', 'purchase_order_dates', 'purchase_taxes'))->render();
         } catch (\Exception $e) {
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
@@ -1395,6 +1346,86 @@ class PurchaseController extends Controller
         }
 
         return $output;
+    }
+
+    /**
+     * Generates a downloadable GRN (Goods Receipt Note) PDF for a purchase.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function downloadGrnPdf($id)
+    {
+        if (! auth()->user()->can('purchase.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+
+        $taxes = TaxRate::where('business_id', $business_id)->get();
+
+        $purchase = Transaction::where('business_id', $business_id)
+                            ->where('id', $id)
+                            ->with(
+                                'contact',
+                                'purchase_lines',
+                                'purchase_lines.product',
+                                'purchase_lines.variations',
+                                'purchase_lines.variations.product_variation',
+                                'location',
+                                'payment_lines'
+                            )
+                            ->first();
+
+        foreach ($purchase->purchase_lines as $key => $value) {
+            if (! empty($value->sub_unit_id)) {
+                $formated_purchase_line = $this->productUtil->changePurchaseLineUnit($value, $business_id);
+                $purchase->purchase_lines[$key] = $formated_purchase_line;
+            }
+        }
+
+        //Purchase order reference(s), if this GRN was raised against one
+        $purchase_order_nos = '';
+        $purchase_order_dates = '';
+        if (! empty($purchase->purchase_order_ids)) {
+            $purchase_orders = Transaction::find($purchase->purchase_order_ids);
+            $purchase_order_nos = implode(', ', $purchase_orders->pluck('ref_no')->toArray());
+            $order_dates = [];
+            foreach ($purchase_orders as $purchase_order) {
+                $order_dates[] = $this->transactionUtil->format_date($purchase_order->transaction_date, true);
+            }
+            $purchase_order_dates = implode(', ', $order_dates);
+        }
+
+        $location_details = BusinessLocation::find($purchase->location_id);
+        $invoice_layout = $this->businessUtil->invoiceLayout($business_id, $location_details->invoice_layout_id ?? null);
+
+        $logo = ! empty($invoice_layout) && $invoice_layout->show_logo != 0 && ! empty($invoice_layout->logo) && file_exists(public_path('uploads/invoice_logos/'.$invoice_layout->logo)) ? asset('uploads/invoice_logos/'.$invoice_layout->logo) : false;
+
+        $word_format = $invoice_layout->common_settings['num_to_word_format'] ?? 'international';
+        $total_in_words = $this->transactionUtil->numToWord($purchase->final_total, null, $word_format);
+
+        $custom_labels = json_decode(session('business.custom_labels'), true);
+
+        $body = view('purchase.receipts.download_pdf')
+                    ->with(compact('purchase', 'invoice_layout', 'location_details', 'logo', 'total_in_words', 'custom_labels', 'taxes', 'purchase_order_nos', 'purchase_order_dates'))
+                    ->render();
+
+        $mpdf = new \Mpdf\Mpdf(['tempDir' => public_path('uploads/temp'),
+            'mode' => 'utf-8',
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
+            'autoVietnamese' => true,
+            'autoArabic' => true,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'format' => 'A4',
+        ]);
+
+        $mpdf->useSubstitutions = true;
+        $mpdf->SetTitle('GRN-'.$purchase->ref_no.'.pdf');
+        $mpdf->WriteHTML($body);
+        $mpdf->Output('GRN-'.$purchase->ref_no.'.pdf', 'I');
     }
 
     /**

@@ -289,6 +289,9 @@
 										@lang('product.mfg_date') / @lang('product.exp_date')
 									</th>
 								@endif
+								@if(session('business.enable_damage_loss_tracking'))
+									<th>@lang('purchase.damage_loss')</th>
+								@endif
 								<th><i class="fa fa-trash" aria-hidden="true"></i></th>
 							</tr>
 						</thead>
@@ -590,6 +593,9 @@
 </div>
 
 @include('purchase.partials.import_purchase_products_modal')
+@if(session('business.enable_damage_loss_tracking'))
+    @include('purchase.partials.damage_loss_modal')
+@endif
 <!-- /.content -->
 @endsection
 

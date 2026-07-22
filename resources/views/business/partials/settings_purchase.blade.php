@@ -76,6 +76,17 @@
         <div class="form-group">
             <div class="checkbox">
                 <label>
+                {!! Form::checkbox('enable_damage_loss_tracking', 1, $business->enable_damage_loss_tracking , [ 'class' => 'input-icheck', 'id' => 'enable_damage_loss_tracking']); !!} {{ __( 'lang_v1.enable_damage_loss_tracking' ) }}
+                </label>
+              @show_tooltip(__('lang_v1.tooltip_enable_damage_loss_tracking'))
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6">
+        <div class="form-group">
+            <div class="checkbox">
+                <label>
                 {!! Form::checkbox('common_settings[enable_purchase_order]', 1, !empty($common_settings['enable_purchase_order']) , [ 'class' => 'input-icheck', 'id' => 'enable_purchase_order']); !!} {{ __( 'lang_v1.enable_purchase_order' ) }}
                 </label>
               @show_tooltip(__('lang_v1.purchase_order_help_text'))

@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title', __('purchase.purchases'))
+@section('title', __('purchase.list_purchase'))
 
 @section('content')
 
     <!-- Content Header (Page header) -->
     <section class="content-header no-print">
-        <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('purchase.purchases')
+        <h1 class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('purchase.list_purchase')
             <small></small>
         </h1>
         <!-- <ol class="breadcrumb">
@@ -89,7 +89,7 @@
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                                 <path d="M12 5l0 14" />
                                 <path d="M5 12l14 0" />
-                            </svg> @lang('messages.add')
+                            </svg> @lang('purchase.add_purchase')
                         </a>
                     </div>
                 @endslot
@@ -129,6 +129,21 @@
     </script>
     <script src="{{ asset('js/purchase.js?v=' . $asset_v) }}"></script>
     <script src="{{ asset('js/payment.js?v=' . $asset_v) }}"></script>
+    <script>
+        //Auto-print the GRN receipt right after a new GRN is saved
+        $(document).ready(function() {
+            var status_span = $('#status_span');
+            if (status_span.length && status_span.attr('data-status') === '1' && status_span.attr(
+                    'data-id')) {
+                var grn_id = status_span.attr('data-id');
+                $('<a>', {
+                    href: '#',
+                    class: 'print-invoice',
+                    'data-href': '{{ url('purchases/print') }}/' + grn_id
+                }).appendTo('body').trigger('click').remove();
+            }
+        });
+    </script>
     <script>
         //Date range as a button
         $('#purchase_list_filter_date_range').daterangepicker(

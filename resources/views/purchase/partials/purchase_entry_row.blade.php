@@ -1,5 +1,5 @@
 @foreach( $variations as $variation)
-    <tr @if(!empty($purchase_order_line)) data-purchase_order_id="{{$purchase_order_line->transaction_id}}" @endif @if(!empty($purchase_requisition_line)) data-purchase_requisition_id="{{$purchase_requisition_line->transaction_id}}" @endif>
+    <tr data-row-index="{{ $row_count }}" @if(!empty($purchase_order_line)) data-purchase_order_id="{{$purchase_order_line->transaction_id}}" @endif @if(!empty($purchase_requisition_line)) data-purchase_requisition_id="{{$purchase_requisition_line->transaction_id}}" @endif>
         <td><span class="sr_number"></span></td>
         <td>
             {{ $product->name }} ({{$variation->sub_sku}})
@@ -272,6 +272,19 @@
                 @endif
             </td>
         @endif
+        @endif
+        @if(session('business.enable_damage_loss_tracking'))
+            <td class="text-center">
+                <button type="button" class="btn btn-xs btn-default damage_loss_btn" data-row="{{ $row_count }}" title="@lang('purchase.mark_damage_loss')">
+                    <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                </button>
+                <br>
+                <small class="damage_loss_badge text-danger" style="white-space:nowrap;"></small>
+                {!! Form::hidden('purchases[' . $row_count . '][quantity_damaged]', 0, ['class' => 'damage_loss_qty_damaged']); !!}
+                {!! Form::hidden('purchases[' . $row_count . '][quantity_lost]', 0, ['class' => 'damage_loss_qty_lost']); !!}
+                {!! Form::hidden('purchases[' . $row_count . '][damage_loss_reason]', '', ['class' => 'damage_loss_reason_hidden']); !!}
+                {!! Form::hidden('purchases[' . $row_count . '][damage_loss_note]', '', ['class' => 'damage_loss_note_hidden']); !!}
+            </td>
         @endif
         <?php $row_count++ ;?>
 

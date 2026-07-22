@@ -271,6 +271,13 @@ class AdminSidebarMenu
                                 ['icon' => '', 'active' => request()->segment(1) == 'purchase-order']
                             );
                         }
+                        if (!empty($common_settings['enable_purchase_order']) && auth()->user()->can('purchase_order.create')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\ImportPurchaseOrdersController::class, 'index']),
+                                __('lang_v1.import_purchase_orders'),
+                                ['icon' => '', 'active' => request()->segment(1) == 'import-purchase-orders']
+                            );
+                        }
                         if (auth()->user()->can('purchase.view') || auth()->user()->can('view_own_purchase')) {
                             $sub->url(
                                 action([\App\Http\Controllers\PurchaseController::class, 'index']),
@@ -290,6 +297,13 @@ class AdminSidebarMenu
                                 action([\App\Http\Controllers\PurchaseReturnController::class, 'index']),
                                 __('lang_v1.list_purchase_return'),
                                 ['icon' => '', 'active' => request()->segment(1) == 'purchase-return']
+                            );
+                        }
+                        if (auth()->user()->can('purchase.create')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\ImportPurchasesController::class, 'index']),
+                                __('lang_v1.import_purchases'),
+                                ['icon' => '', 'active' => request()->segment(1) == 'import-purchases']
                             );
                         }
                     },
@@ -687,6 +701,12 @@ class AdminSidebarMenu
                                 action([\App\Http\Controllers\ReportController::class, 'purchasePaymentReport']),
                                 __('lang_v1.purchase_payment_report'),
                                 ['icon' => '', 'active' => request()->segment(2) == 'purchase-payment-report']
+                            );
+
+                            $sub->url(
+                                action([\App\Http\Controllers\ReportController::class, 'damageLossReport']),
+                                __('purchase.damage_loss_report'),
+                                ['icon' => '', 'active' => request()->segment(2) == 'damage-loss-report']
                             );
 
                             $sub->url(

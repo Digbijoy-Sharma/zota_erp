@@ -600,6 +600,7 @@ $(document).ready(function() {
             { data: 'action', name: 'action', orderable: false, searchable: false },
             { data: 'transaction_date', name: 'transaction_date' },
             { data: 'ref_no', name: 'ref_no' },
+            { data: 'linked_po', name: 'transactions.purchase_order_ids', orderable: false, searchable: false },
             { data: 'location_name', name: 'BS.name' },
             { data: 'name', name: 'contacts.name' },
             { data: 'status', name: 'status' },
@@ -643,7 +644,7 @@ $(document).ready(function() {
         },
         createdRow: function(row, data, dataIndex) {
             $(row)
-                .find('td:eq(5)')
+                .find('td:eq(6)')
                 .attr('class', 'clickable_td');
         },
     });
@@ -1412,11 +1413,59 @@ $("#purchase_requisition_ids").on("select2:select", function (e) {
 $("#purchase_requisition_ids").on("select2:unselect", function (e) {
     var purchase_requisition_id = e.params.data.id;
     $('#purchase_entry_table tbody').find('tr').each( function(){
-        if (typeof($(this).data('purchase_requisition_id')) !== 'undefined' 
+        if (typeof($(this).data('purchase_requisition_id')) !== 'undefined'
             && $(this).data('purchase_requisition_id') == purchase_requisition_id) {
             $(this).remove();
         }
     });
+});
+
+//Damage/Loss modal: open pre-filled with the triggering row's current values
+$(document).on('click', '.damage_loss_btn', function(e) {
+    e.preventDefault();
+    var row_index = $(this).data('row');
+    var row = $('tr[data-row-index="' + row_index + '"]');
+
+    $('#damage_loss_modal_row').val(row_index);
+    __write_number($('#damage_loss_modal_qty_damaged'), __read_number(row.find('.damage_loss_qty_damaged'), true), true);
+    __write_number($('#damage_loss_modal_qty_lost'), __read_number(row.find('.damage_loss_qty_lost'), true), true);
+    $('#damage_loss_modal_reason').val(row.find('.damage_loss_reason_hidden').val()).trigger('change');
+    $('#damage_loss_modal_note').val(row.find('.damage_loss_note_hidden').val());
+
+    $('#damage_loss_modal').modal('show');
+});
+
+//Damage/Loss modal: write values back into the row's hidden inputs + refresh its badge
+$(document).on('click', '#damage_loss_modal_save', function(e) {
+    e.preventDefault();
+    var row_index = $('#damage_loss_modal_row').val();
+    var row = $('tr[data-row-index="' + row_index + '"]');
+
+    var qty_damaged = __read_number($('#damage_loss_modal_qty_damaged'), true);
+    var qty_lost = __read_number($('#damage_loss_modal_qty_lost'), true);
+    var reason = $('#damage_loss_modal_reason').val();
+    var reason_text = $('#damage_loss_modal_reason option:selected').text();
+    var note = $('#damage_loss_modal_note').val();
+
+    __write_number(row.find('.damage_loss_qty_damaged'), qty_damaged, true);
+    __write_number(row.find('.damage_loss_qty_lost'), qty_lost, true);
+    row.find('.damage_loss_reason_hidden').val(reason);
+    row.find('.damage_loss_note_hidden').val(note);
+
+    var badge_parts = [];
+    if (qty_damaged) {
+        badge_parts.push(__number_f(qty_damaged, false) + ' ' + LANG.quantity_damaged);
+    }
+    if (qty_lost) {
+        badge_parts.push(__number_f(qty_lost, false) + ' ' + LANG.quantity_lost);
+    }
+    var badge_text = badge_parts.join(', ');
+    if (badge_text && reason) {
+        badge_text += ' (' + reason_text + ')';
+    }
+    row.find('.damage_loss_badge').text(badge_text);
+
+    $('#damage_loss_modal').modal('hide');
 });
 
 

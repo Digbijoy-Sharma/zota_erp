@@ -71,7 +71,7 @@
         @endif
         @if (session('status'))
             <input type="hidden" id="status_span" data-status="{{ session('status.success') }}"
-                data-msg="{{ session('status.msg') }}">
+                data-msg="{{ session('status.msg') }}" data-id="{{ session('status.id') }}">
         @endif
         <main class="tw-flex tw-flex-col tw-flex-1 tw-h-full tw-min-w-0 tw-bg-gray-100">
             @if($request->segment(1) != 'customer-display' && !$pos_layout)

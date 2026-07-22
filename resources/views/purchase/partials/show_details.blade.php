@@ -7,7 +7,7 @@
       $title = $purchase->type == 'purchase_order' ? __('lang_v1.purchase_order_details') : __('purchase.purchase_details');
       $custom_labels = json_decode(session('business.custom_labels'), true);
     @endphp
-    <h4 class="modal-title" id="modalTitle"> {{$title}} (<b>@lang('purchase.ref_no'):</b> #{{ e($purchase->ref_no) }})
+    <h4 class="modal-title" id="modalTitle"> {{$title}} (<b>@if($purchase->type == 'purchase') @lang('purchase.grn_no') @else @lang('purchase.ref_no') @endif:</b> #{{ e($purchase->ref_no) }})
     </h4>
 </div>
 <div class="modal-body">
@@ -71,7 +71,7 @@
     </div>
 
     <div class="col-sm-4 invoice-col">
-      <b>@lang('purchase.ref_no'):</b> #{{ $purchase->ref_no }}<br/>
+      <b>@if($purchase->type == 'purchase') @lang('purchase.grn_no') @else @lang('purchase.ref_no') @endif:</b> #{{ $purchase->ref_no }}<br/>
       <b>@lang('messages.date'):</b> {{ @format_date($purchase->transaction_date) }}<br/>
       @if(!empty($purchase->status))
         <b>@lang('purchase.purchase_status'):</b> @if($purchase->type == 'purchase_order'){{$po_statuses[$purchase->status]['label'] ?? ''}} @else {{ __('lang_v1.' . $purchase->status) }} @endif<br>
@@ -184,6 +184,14 @@
                  @if( $purchase_line->product->type == 'variable')
                   - {{ $purchase_line->variations->product_variation->name}}
                   - {{ $purchase_line->variations->name}}
+                 @endif
+                 @if($purchase->type == 'purchase' && session('business.enable_damage_loss_tracking') && ($purchase_line->quantity_damaged || $purchase_line->quantity_lost))
+                    <br>
+                    <small class="text-red">
+                        @if($purchase_line->quantity_damaged) {{ @format_quantity($purchase_line->quantity_damaged) }} @lang('purchase.quantity_damaged') @endif
+                        @if($purchase_line->quantity_lost) {{ @format_quantity($purchase_line->quantity_lost) }} @lang('purchase.quantity_lost') @endif
+                        @if(!empty($purchase_line->damage_loss_reason)) &mdash; {{ __('lang_v1.' . $purchase_line->damage_loss_reason) }} @endif
+                    </small>
                  @endif
               </td>
               <td>
@@ -374,6 +382,21 @@
               <td><b>(+)</b></td>
               <td><span class="display_currency pull-right" >{{ $purchase->additional_expense_value_4 }}</span></td>
             </tr>
+          @endif
+          @if($purchase->type == 'purchase' && session('business.enable_damage_loss_tracking'))
+            @php
+                $damage_loss_value = 0;
+                foreach ($purchase->purchase_lines as $pl) {
+                    $damage_loss_value += ($pl->quantity_damaged + $pl->quantity_lost) * $pl->purchase_price_inc_tax;
+                }
+            @endphp
+            @if($damage_loss_value > 0)
+              <tr>
+                <th class="text-red">@lang('purchase.damage_loss_value'):</th>
+                <td></td>
+                <td><span class="display_currency pull-right text-red" data-currency_symbol="true">{{ $damage_loss_value }}</span></td>
+              </tr>
+            @endif
           @endif
           <tr>
             <th>@lang('purchase.purchase_total'):</th>

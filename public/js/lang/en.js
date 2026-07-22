@@ -178,5 +178,9 @@ LANG = {
     'calc_no_calculations_yet': 'No calculations yet',
     'calc_clear_history': 'Clear history',
     'day': 'Day',
-    'days': 'Days'
+    'days': 'Days',
+
+    // GRN damage/loss
+    'quantity_damaged': 'Damaged Qty',
+    'quantity_lost': 'Lost Qty'
 };

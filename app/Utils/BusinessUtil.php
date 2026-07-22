@@ -401,6 +401,16 @@ class BusinessUtil extends Util
         // per-store setup.
         $business_details['enable_sub_units'] = $business_details['enable_sub_units'] ?? 1;
 
+        // Purchase Orders are part of every store's procurement workflow in
+        // this chain, so enable the feature by default for new stores. The
+        // flag lives inside the common_settings JSON; merge rather than
+        // overwrite so any settings passed by the caller are preserved.
+        $common_settings = $business_details['common_settings'] ?? [];
+        if (! isset($common_settings['enable_purchase_order'])) {
+            $common_settings['enable_purchase_order'] = 1;
+        }
+        $business_details['common_settings'] = $common_settings;
+
         $business = Business::create_business($business_details);
 
         return $business;

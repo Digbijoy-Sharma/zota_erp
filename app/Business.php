@@ -132,6 +132,40 @@ class Business extends Model
         }
     }
 
+    /**
+     * The chain "template" business — the lowest-id business, which is
+     * the superadmin's own business and the source of chain-wide
+     * defaults (mirrors MovementTagConfig::templateBusinessId()).
+     */
+    public static function templateBusinessId()
+    {
+        return static::orderBy('id')->value('id');
+    }
+
+    /**
+     * Effective auto-PO frequency (in days) for this store:
+     *   1. the store's own per-store override (auto_po_frequency_days), else
+     *   2. the chain-wide default held on the template business, else
+     *   3. null  =>  auto-PO is disabled for this store.
+     */
+    public function effectiveAutoPoFrequencyDays()
+    {
+        if (! empty($this->auto_po_frequency_days)) {
+            return (int) $this->auto_po_frequency_days;
+        }
+
+        $template_id = static::templateBusinessId();
+
+        // The template itself has no higher default to inherit from.
+        if ((int) $this->id === (int) $template_id) {
+            return null;
+        }
+
+        $default = static::where('id', $template_id)->value('auto_po_frequency_days');
+
+        return ! empty($default) ? (int) $default : null;
+    }
+
     public function getBusinessAddressAttribute()
     {
         $location = $this->locations->first();

@@ -29,6 +29,8 @@
 
                     <li @if(request()->segment(1) == 'superadmin' && (request()->segment(2) == 'movement-tags' || request()->segment(2) == 'stock-settings')) class="active" @endif><a href="{{ action([\Modules\Superadmin\Http\Controllers\MovementTagController::class, 'index']) }}">@lang('superadmin::lang.movement_tags')</a></li>
 
+                    <li @if(request()->segment(1) == 'superadmin' && request()->segment(2) == 'supplier-logins') class="active" @endif><a href="{{ action([\Modules\Superadmin\Http\Controllers\SupplierLoginController::class, 'index']) }}">@lang('superadmin::lang.supplier_logins')</a></li>
+
                     <li @if(request()->segment(1) == 'superadmin' && request()->segment(2) == 'communicator') class="active" @endif><a href="{{action([\Modules\Superadmin\Http\Controllers\CommunicatorController::class, 'index'])}}">@lang('superadmin::lang.communicator')</a></li>
                 </ul>
 

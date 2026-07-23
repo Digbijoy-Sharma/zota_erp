@@ -40,6 +40,12 @@ class Kernel extends ConsoleKernel
             // bootstrap and is retained until a product has 90 days of
             // sales history, after which each 90-day run takes over.
             $schedule->command('pos:updateMovementTags')->cron('0 3 1 1,4,7,10 *');
+
+            // Auto purchase orders: runs DAILY, but each store only raises
+            // a combined PO when it is "due" per its own auto-PO frequency
+            // (1-30 days) and has open auto-requisitions. withoutOverlapping
+            // guards against a long run colliding with the next day's tick.
+            $schedule->command('pos:autoRaisePurchaseOrders')->dailyAt('03:30')->withoutOverlapping();
         }
 
         if ($env === 'demo') {

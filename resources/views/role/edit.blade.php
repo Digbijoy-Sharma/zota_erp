@@ -714,6 +714,48 @@
           </div>
         @endif
 
+        @if(auth()->user()->can('superadmin'))
+          <div class="row check_group">
+            <div class="col-md-1">
+              <h4>@lang( 'lang_v1.supplier_portal' )</h4>
+            </div>
+            <div class="col-md-2">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" class="check_all input-icheck" > {{ __( 'role.select_all' ) }}
+                </label>
+              </div>
+            </div>
+            <div class="col-md-9">
+              <div class="col-md-12">
+                <div class="checkbox">
+                  <label>
+                    {!! Form::checkbox('permissions[]', 'supplier_portal.view_dashboard', in_array('supplier_portal.view_dashboard', $role_permissions),
+                    [ 'class' => 'input-icheck']); !!} @lang( 'lang_v1.supplier_portal_view_dashboard' )
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="checkbox">
+                  <label>
+                    {!! Form::checkbox('permissions[]', 'supplier_portal.view_po', in_array('supplier_portal.view_po', $role_permissions),
+                    [ 'class' => 'input-icheck']); !!} @lang( 'lang_v1.supplier_portal_view_po' )
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="checkbox">
+                  <label>
+                    {!! Form::checkbox('permissions[]', 'supplier_portal.update_po_status', in_array('supplier_portal.update_po_status', $role_permissions),
+                    [ 'class' => 'input-icheck']); !!} @lang( 'lang_v1.supplier_portal_update_po_status' )
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <hr>
+        @endif
+
         <div class="row check_group">
             <div class="col-md-1">
                 <h4>@lang( 'sale.pos_sale' )</h4>

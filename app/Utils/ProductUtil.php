@@ -381,6 +381,14 @@ class ProductUtil extends Util
 
             $variation_location_d->qty_available += $qty_difference;
             $variation_location_d->save();
+
+            // Auto-requisition upkeep: an adjustment/GRN can push stock
+            // below min (create a requisition line) OR above min (drop a
+            // pending one). Handles both directions; runs on the low-
+            // frequency stock paths (not the POS hot path).
+            app(\App\Utils\AutoRequisitionUtil::class)->syncForVariationLocation(
+                $product->business_id, $location_id, $product_id, $variation->id, $variation_location_d
+            );
         }
 
         return true;
@@ -423,6 +431,18 @@ class ProductUtil extends Util
             }
 
             $details->decrement('qty_available', $qty_difference);
+
+            // Auto-requisition upkeep (POS hot path). Cheap in-memory
+            // guard first: only when stock is now at/below the per-store
+            // min do we invoke the engine (which then keeps the required
+            // qty = max - current live). A decrease that stays above min
+            // needs no work, so normal sales add ZERO extra queries.
+            if ((float) $details->min_quantity > 0
+                && (float) $details->qty_available <= (float) $details->min_quantity) {
+                app(\App\Utils\AutoRequisitionUtil::class)->syncForVariationLocation(
+                    $product->business_id, $location_id, $product_id, $variation_id, $details
+                );
+            }
         }
 
         return true;

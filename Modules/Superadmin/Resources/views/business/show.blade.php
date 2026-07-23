@@ -206,6 +206,49 @@
     <div class="box">
         <div class="box-header">
                 <h3 class="box-title">
+                    <strong><i class="fa fa-clock-o margin-r-5"></i>
+                    @lang( 'superadmin::lang.auto_po_frequency' )</strong>
+                </h3>
+        </div>
+        <div class="box-body">
+            {!! Form::open(['url' => action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'saveAutoPoFrequency'], [$business->id]), 'method' => 'post', 'class' => 'form-inline']) !!}
+                <div class="form-group">
+                    {!! Form::label('auto_po_frequency_days', __('superadmin::lang.auto_po_frequency_days') . ':') !!}
+                    {!! Form::number('auto_po_frequency_days', $business->auto_po_frequency_days, ['class' => 'form-control', 'min' => 1, 'max' => 30, 'style' => 'width:120px', 'placeholder' => __('superadmin::lang.inherit')]) !!}
+                    <button type="submit" class="btn btn-primary">@lang('messages.save')</button>
+                </div>
+                <div class="checkbox" style="margin-left:15px;">
+                    <label>
+                        {!! Form::checkbox('apply_po_freq_chain_wide', 1, false) !!}
+                        @lang('superadmin::lang.apply_po_freq_chain_wide')
+                    </label>
+                </div>
+                <p class="help-block">
+                    @lang('superadmin::lang.auto_po_frequency_help')
+                    @if(empty($business->auto_po_frequency_days) && !empty($effective_auto_po_frequency))
+                        <br><em>@lang('superadmin::lang.auto_po_frequency_inherited', ['days' => $effective_auto_po_frequency])</em>
+                    @elseif(empty($effective_auto_po_frequency))
+                        <br><em>@lang('superadmin::lang.auto_po_frequency_off')</em>
+                    @endif
+                </p>
+            {!! Form::close() !!}
+
+            <p class="help-block" style="margin-top:8px;">
+                <i class="fa fa-truck"></i>
+                @if($assigned_suppliers->isEmpty())
+                    @lang('superadmin::lang.auto_po_supplier_none_assigned')
+                    <a href="{{ action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'manageSuppliers'], [$business->id]) }}">@lang('superadmin::lang.assign_common_suppliers')</a>
+                @else
+                    @lang('superadmin::lang.auto_po_goes_to'): <strong>{{ $assigned_suppliers->implode(', ') }}</strong>
+                    <a href="{{ action([\Modules\Superadmin\Http\Controllers\BusinessController::class, 'manageSuppliers'], [$business->id]) }}">(@lang('superadmin::lang.assign_common_suppliers'))</a>
+                @endif
+            </p>
+        </div>
+    </div>
+
+    <div class="box">
+        <div class="box-header">
+                <h3 class="box-title">
                     <strong><i class="fa fa-undo margin-r-5"></i>
                     @lang( 'superadmin::lang.sell_return_policy' )</strong>
                 </h3>

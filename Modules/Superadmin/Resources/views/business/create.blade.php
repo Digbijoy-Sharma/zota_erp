@@ -22,6 +22,19 @@
                             <p class="help-block">@lang('superadmin::lang.store_unique_number_help')</p>
                         </div>
                     </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {!! Form::label('auto_po_frequency_days', __('superadmin::lang.auto_po_frequency_days') . ':') !!}
+                            {!! Form::number('auto_po_frequency_days', null, ['class' => 'form-control', 'min' => 1, 'max' => 30, 'placeholder' => __('superadmin::lang.inherit')]); !!}
+                            <div class="checkbox">
+                                <label>
+                                    {!! Form::checkbox('apply_po_freq_chain_wide', 1, false) !!}
+                                    @lang('superadmin::lang.apply_po_freq_chain_wide')
+                                </label>
+                            </div>
+                            <p class="help-block">@lang('superadmin::lang.auto_po_frequency_help')</p>
+                        </div>
+                    </div>
                     <div class="clearfix"></div>
                     <div class="col-md-12"><hr></div>
                     <div class="col-md-12">

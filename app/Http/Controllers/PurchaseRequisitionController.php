@@ -468,6 +468,10 @@ class PurchaseRequisitionController extends Controller
 
         $purchase_requisitions = Transaction::where('business_id', $business_id)
                         ->where('type', 'purchase_requisition')
+                        // Engine-owned auto-requisitions are consumed only by
+                        // the scheduled auto-PO job; hide them from the manual
+                        // PO create dropdown so they can't be double-ordered.
+                        ->where('is_auto_generated', 0)
                         ->whereIn('status', ['partial', 'ordered'])
                         ->where('location_id', $location_id)
                         ->select('ref_no as text', 'id')

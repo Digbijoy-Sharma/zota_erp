@@ -577,6 +577,16 @@ class PurchaseOrderController extends Controller
             $purchase_requisitions = Transaction::where('business_id', $business_id)
                                         ->where('type', 'purchase_requisition')
                                         ->where('location_id', $purchase->location_id)
+                                        // Exclude engine-owned auto-requisitions
+                                        // (consumed only by the auto-PO job),
+                                        // except any already linked to this PO.
+                                        ->where(function ($q) use ($purchase) {
+                                            $q->where('is_auto_generated', 0);
+
+                                            if (! empty($purchase->purchase_requisition_ids)) {
+                                                $q->orWhereIn('id', $purchase->purchase_requisition_ids);
+                                            }
+                                        })
                                         ->where(function ($q) use ($purchase) {
                                             $q->where('status', '!=', 'completed');
 

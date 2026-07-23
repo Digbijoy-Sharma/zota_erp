@@ -103,7 +103,7 @@ Route::middleware(['setData'])->group(function () {
 });
 
 //Routes for authenticated users only
-Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])->group(function () {
+Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', 'BlockSupplierPortalUser'])->group(function () {
     Route::get('pos/payment/{id}', [SellPosController::class, 'edit'])->name('edit-pos-payment');
     Route::get('service-staff-availability', [SellPosController::class, 'showServiceStaffAvailibility']);
     Route::get('pause-resume-service-staff-timer/{user_id}', [SellPosController::class, 'pauseResumeServiceStaffTimer']);
@@ -533,7 +533,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
 //common route
 // Logout is provided by Auth::routes() above; do not redeclare.
-Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])->group(function () {
+Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'BlockSupplierPortalUser'])->group(function () {
     Route::get('/load-more-notifications', [HomeController::class, 'loadMoreNotifications']);
     Route::get('/get-total-unread', [HomeController::class, 'getTotalUnreadNotifications']);
     Route::get('/purchases/print/{id}', [PurchaseController::class, 'printInvoice']);
@@ -550,4 +550,14 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])
     Route::get('/sells/invoice-url/{id}', [SellPosController::class, 'showInvoiceUrl']);
     Route::get('/show-notification/{id}', [HomeController::class, 'showNotification']);
     Route::post('/sell/check-invoice-number', [SellController::class, 'checkInvoiceNumber']);
+});
+
+// Supplier (warehouse) portal — a separate logged-in area for suppliers
+// (users.user_type = 'user_supplier'). No CheckUserLogin (that blocks
+// non-'user' types); CheckSupplierLogin restricts it to suppliers.
+Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'CheckSupplierLogin'])->prefix('supplier')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\SupplierPortalController::class, 'dashboard'])->name('supplier.dashboard');
+    Route::get('/purchase-orders', [\App\Http\Controllers\SupplierPortalController::class, 'purchaseOrders'])->name('supplier.purchase-orders');
+    Route::get('/purchase-orders/{id}', [\App\Http\Controllers\SupplierPortalController::class, 'show'])->name('supplier.purchase-order.show');
+    Route::put('/purchase-orders/{id}/status', [\App\Http\Controllers\SupplierPortalController::class, 'updateStatus'])->name('supplier.purchase-order.status');
 });

@@ -1805,4 +1805,10 @@ return [
     'slow_moving' => 'Slow Moving (SM)',
     'last_updated' => 'Last Updated',
     'next_update' => 'Next Update',
+
+    // Supplier (warehouse) portal
+    'supplier_portal' => 'Supplier Portal',
+    'supplier_portal_view_dashboard' => 'View supplier dashboard',
+    'supplier_portal_view_po' => 'View purchase orders (all stores)',
+    'supplier_portal_update_po_status' => 'Update PO dispatch status',
 ];

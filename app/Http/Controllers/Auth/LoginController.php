@@ -140,6 +140,12 @@ class LoginController extends Controller
     protected function redirectTo()
     {
         $user = \Auth::user();
+
+        // Supplier-portal logins land on the cross-store supplier dashboard.
+        if ($user->user_type == 'user_supplier') {
+            return '/supplier/dashboard';
+        }
+
         if (! $user->can('dashboard.data') && $user->can('sell.create')) {
             return '/pos/create';
         }

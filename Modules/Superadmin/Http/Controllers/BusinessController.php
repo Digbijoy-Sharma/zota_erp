@@ -319,6 +319,7 @@ class BusinessController extends BaseController
         // across all businesses when provided.
         $request->validate([
             'store_unique_number' => 'nullable|string|max:191|unique:business,store_unique_number',
+            'auto_po_frequency_days' => 'nullable|integer|min:1|max:30',
         ]);
 
         try {
@@ -343,13 +344,18 @@ class BusinessController extends BaseController
                 $user = User::create_user($owner_details);
             }
 
-            $business_details = $request->only(['name', 'store_unique_number', 'start_date', 'currency_id', 'tax_label_1', 'tax_number_1', 'tax_label_2', 'tax_number_2', 'time_zone', 'accounting_method', 'fy_start_month']);
+            $business_details = $request->only(['name', 'store_unique_number', 'start_date', 'currency_id', 'tax_label_1', 'tax_number_1', 'tax_label_2', 'tax_number_2', 'time_zone', 'accounting_method', 'fy_start_month', 'auto_po_frequency_days']);
 
             // Normalise empty string to null so the unique index treats
             // "not set" stores consistently (multiple NULLs are allowed).
             if (empty($business_details['store_unique_number'])) {
                 $business_details['store_unique_number'] = null;
             }
+
+            // Auto-PO frequency: normalise blanks to null so an unset
+            // store cleanly inherits the chain-wide default.
+            $business_details['auto_po_frequency_days'] = ! empty($business_details['auto_po_frequency_days'])
+                ? (int) $business_details['auto_po_frequency_days'] : null;
 
             $business_location = $request->only(['name', 'country', 'state', 'city', 'zip_code', 'landmark', 'website', 'mobile', 'alternate_number']);
 
@@ -453,6 +459,13 @@ class BusinessController extends BaseController
 
             DB::commit();
 
+            // "Apply this frequency to ALL stores" — the superadmin can set
+            // one uniform auto-PO cadence chain-wide. This overwrites every
+            // business's per-store value (including the template default).
+            if ($request->boolean('apply_po_freq_chain_wide') && ! empty($business->auto_po_frequency_days)) {
+                Business::query()->update(['auto_po_frequency_days' => (int) $business->auto_po_frequency_days]);
+            }
+
             //Sync master products to the new business (defensive: never block business creation)
             try {
                 SuperadminProductController::syncAllProductsToBusiness($business);
@@ -467,6 +480,7 @@ class BusinessController extends BaseController
             //own business — we clone it into the new business so it shows
             //up in the business's supplier list.
             $supplier_ids = (array) $request->input('supplier_ids', []);
+            $supplier_ids = array_values(array_unique(array_filter(array_map('intval', $supplier_ids))));
             $super_admin_business_id = $request->session()->get('user.business_id');
             $user_id = $request->session()->get('user.id');
             if (!empty($supplier_ids)) {
@@ -539,20 +553,32 @@ class BusinessController extends BaseController
      *
      * @return Response
      */
-    public function show($business_id)
+    public function show(Request $request, $business_id)
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
-        $business = Business::with(['currency', 'locations', 'subscriptions', 'owner'])->find($business_id);
+        $business = Business::with(['currency', 'locations', 'subscriptions', 'owner'])->findOrFail($business_id);
 
         $created_id = $business->created_by;
 
         $created_by = ! empty($created_id) ? User::find($created_id) : null;
 
+        // Suppliers the superadmin has assigned to this store (clones with
+        // common_supplier_id set). Auto-POs go to the assigned supplier, so
+        // surface it read-only under the frequency box.
+        $assigned_suppliers = Contact::where('business_id', $business_id)
+            ->whereIn('type', ['supplier', 'both'])
+            ->whereNotNull('common_supplier_id')
+            ->orderBy('id')
+            ->pluck('name');
+
+        // The value actually in effect (own override, else chain default).
+        $effective_auto_po_frequency = $business->effectiveAutoPoFrequencyDays();
+
         return view('superadmin::business.show')
-            ->with(compact('business', 'created_by'));
+            ->with(compact('business', 'created_by', 'assigned_suppliers', 'effective_auto_po_frequency'));
     }
 
     /**
@@ -728,6 +754,43 @@ class BusinessController extends BaseController
         return redirect()->back()->with('status', [
             'success' => 1,
             'msg' => __('superadmin::lang.store_number_updated', ['business' => $business->name]),
+        ]);
+    }
+
+    /**
+     * Save the per-store auto-PO frequency (days between automatic
+     * purchase orders) from the business detail page. Blank/0 clears the
+     * per-store override so the store inherits the chain-wide default.
+     * If "apply to all stores" is ticked, the value is pushed to every
+     * business (uniform chain-wide cadence).
+     */
+    public function saveAutoPoFrequency(Request $request, $business_id)
+    {
+        if (! auth()->user()->can('superadmin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'auto_po_frequency_days' => 'nullable|integer|min:1|max:30',
+        ]);
+
+        $business = Business::findOrFail($business_id);
+        $days = (int) $request->input('auto_po_frequency_days');
+        $days = ($days >= 1 && $days <= 30) ? $days : null;
+
+        if ($request->boolean('apply_po_freq_chain_wide') && ! empty($days)) {
+            // Uniform cadence for every store.
+            Business::query()->update(['auto_po_frequency_days' => $days]);
+            $msg = __('superadmin::lang.auto_po_frequency_updated_all');
+        } else {
+            $business->auto_po_frequency_days = $days;
+            $business->save();
+            $msg = __('superadmin::lang.auto_po_frequency_updated', ['business' => $business->name]);
+        }
+
+        return redirect()->back()->with('status', [
+            'success' => 1,
+            'msg' => $msg,
         ]);
     }
 

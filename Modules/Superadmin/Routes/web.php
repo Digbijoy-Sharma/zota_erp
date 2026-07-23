@@ -52,6 +52,15 @@ Route::middleware('web', 'SetSessionData', 'auth', 'language', 'AdminSidebarMenu
     // Per-business management-assigned store unique number
     Route::post('/business/{business_id}/store-number', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'saveStoreNumber'])->name('business.store-number');
 
+    // Per-business auto-PO frequency (target supplier = the store's assigned supplier)
+    Route::post('/business/{business_id}/auto-po-frequency', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'saveAutoPoFrequency'])->name('business.auto-po-frequency');
+
+    // Supplier (warehouse) portal logins
+    Route::get('/supplier-logins', [Modules\Superadmin\Http\Controllers\SupplierLoginController::class, 'index'])->name('supplier-logins.index');
+    Route::post('/supplier-logins', [Modules\Superadmin\Http\Controllers\SupplierLoginController::class, 'store'])->name('supplier-logins.store');
+    Route::post('/supplier-logins/{user_id}/toggle', [Modules\Superadmin\Http\Controllers\SupplierLoginController::class, 'toggle'])->name('supplier-logins.toggle');
+    Route::post('/supplier-logins/{user_id}/reset-password', [Modules\Superadmin\Http\Controllers\SupplierLoginController::class, 'resetPassword'])->name('supplier-logins.reset-password');
+
     // Movement tag configs and stock min/max settings
     Route::get('/movement-tags', [Modules\Superadmin\Http\Controllers\MovementTagController::class, 'index'])->name('movement-tags.index');
     Route::post('/movement-tags/save-global', [Modules\Superadmin\Http\Controllers\MovementTagController::class, 'saveGlobal'])->name('movement-tags.save-global');
